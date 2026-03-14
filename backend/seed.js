@@ -14,7 +14,7 @@ const events = [
     category: "tech",
     totalSeats: 500,
     availableSeats: 500,
-    imageUrl: "https://images.unsplash.com/photo-1540575861501-7ad05823c9f5?q=80&w=2070&auto=format&fit=crop"
+    imageUrl: "/images/tech_summit.png"
   },
   {
     title: "Design Masters Workshop",
@@ -25,7 +25,7 @@ const events = [
     category: "design",
     totalSeats: 50,
     availableSeats: 50,
-    imageUrl: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070&auto=format&fit=crop"
+    imageUrl: "https://images.unsplash.com/photo-1561070791-2526d30994b5?q=80&w=2000&auto=format&fit=crop"
   },
   {
     title: "Campus Hackathon: Zero to One",
@@ -36,7 +36,7 @@ const events = [
     category: "hackathon",
     totalSeats: 200,
     availableSeats: 200,
-    imageUrl: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2070&auto=format&fit=crop"
+    imageUrl: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=2000&auto=format&fit=crop"
   },
   {
     title: "Cultural Night: Rhythms & Roots",
@@ -47,7 +47,7 @@ const events = [
     category: "cultural",
     totalSeats: 1000,
     availableSeats: 850,
-    imageUrl: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=2070&auto=format&fit=crop"
+    imageUrl: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=2000&auto=format&fit=crop"
   },
   {
     title: "AI/ML Workshop: Build Your First Agent",
@@ -58,7 +58,7 @@ const events = [
     category: "workshop",
     totalSeats: 60,
     availableSeats: 42,
-    imageUrl: "https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=2070&auto=format&fit=crop"
+    imageUrl: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=2000&auto=format&fit=crop"
   },
   {
     title: "Startup Pitch Day",
@@ -69,7 +69,7 @@ const events = [
     category: "seminar",
     totalSeats: 150,
     availableSeats: 120,
-    imageUrl: "https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=2074&auto=format&fit=crop"
+    imageUrl: "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=2000&auto=format&fit=crop"
   }
 ];
 

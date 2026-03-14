@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, MapPin, Clock, Plus, BarChart3, Users, Trash2, ArrowUpRight, TrendingUp } from 'lucide-react';
+import { Calendar, MapPin, Clock, Plus, BarChart3, Users, Trash2, ArrowUpRight, TrendingUp, Pencil } from 'lucide-react';
 import AuthContext from '../context/AuthContext';
 import api from '../utils/api';
 
@@ -134,6 +134,9 @@ const DashboardPage = () => {
                       <p className="text-sm font-bold text-[var(--color-text-primary)]">{event.availableSeats}<span className="text-[var(--color-text-tertiary)] font-normal">/{event.totalSeats}</span></p>
                       <p className="text-[11px] text-[var(--color-text-tertiary)]">seats left</p>
                     </div>
+                    <Link to={`/edit-event/${event._id}`} className="p-2 rounded-xl text-[var(--color-text-tertiary)] hover:text-indigo-600 hover:bg-indigo-50 transition-all opacity-0 group-hover:opacity-100" title="Edit">
+                      <Pencil className="w-4 h-4" />
+                    </Link>
                     <Link to={`/events/${event._id}`} className="p-2 rounded-xl text-[var(--color-text-tertiary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary-muted)] transition-all">
                       <ArrowUpRight className="w-4 h-4" />
                     </Link>

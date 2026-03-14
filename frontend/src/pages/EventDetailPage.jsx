@@ -17,6 +17,10 @@ const EventDetailPage = () => {
       try {
         const { data } = await api.get(`/events/${id}`);
         setEvent(data);
+        // Check if the current user already RSVPd
+        if (user && data.attendees && data.attendees.includes(user._id)) {
+          setRsvpDone(true);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -24,7 +28,7 @@ const EventDetailPage = () => {
       }
     };
     fetchEvent();
-  }, [id]);
+  }, [id, user]);
 
   const handleRSVP = async () => {
     if (!user) return alert('Please log in to RSVP.');

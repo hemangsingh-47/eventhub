@@ -1,7 +1,6 @@
-import { useState, useContext } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { CalendarPlus, Image, MapPin, Clock, Users, Tag, FileText, Loader2, ArrowLeft, CheckCircle } from 'lucide-react';
-import AuthContext from '../context/AuthContext';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { CalendarPlus, Image, MapPin, Clock, Users, Loader2, ArrowLeft, CheckCircle } from 'lucide-react';
 import api from '../utils/api';
 
 const categories = [
@@ -13,12 +12,13 @@ const categories = [
   { value: 'design', label: '🎨 Design' },
   { value: 'coding', label: '👨‍💻 Coding' },
   { value: 'sports', label: '⚽ Sports' },
-  { value: 'E-sports', label: '🎮 E-sports' },
   { value: 'other', label: '📌 Other' },
 ];
 
-const CreateEventPage = () => {
+const EditEventPage = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
@@ -26,30 +26,64 @@ const CreateEventPage = () => {
     title: '', description: '', date: '', time: '', location: '', category: 'hackathon', totalSeats: '', imageUrl: '',
   });
 
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        const { data } = await api.get(`/events/${id}`);
+        setForm({
+          title: data.title,
+          description: data.description,
+          date: data.date ? data.date.split('T')[0] : '',
+          time: data.time,
+          location: data.location,
+          category: data.category,
+          totalSeats: data.totalSeats,
+          imageUrl: data.imageUrl || '',
+        });
+      } catch (err) {
+        setError('Failed to load event.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEvent();
+  }, [id]);
+
   const handleChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true); setError(null);
     try {
-      await api.post('/events', { ...form, totalSeats: parseInt(form.totalSeats) });
+      await api.put(`/events/${id}`, { ...form, totalSeats: parseInt(form.totalSeats) });
       setSuccess(true);
       setTimeout(() => navigate('/dashboard'), 1500);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create event.');
+      setError(err.response?.data?.message || 'Failed to update event.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex-grow flex items-center justify-center">
+        <div className="relative">
+          <div className="h-10 w-10 border-3 border-[var(--color-surface-tertiary)] rounded-full"></div>
+          <div className="absolute top-0 h-10 w-10 border-3 border-transparent border-t-[var(--color-primary)] rounded-full animate-spin"></div>
+        </div>
+      </div>
+    );
+  }
+
   if (success) {
     return (
       <div className="flex-grow flex items-center justify-center animate-fade-in-up">
         <div className="text-center">
-          <div className="w-16 h-16 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-center mx-auto mb-5 animate-pulse-glow" style={{boxShadow: '0 0 30px rgba(16, 185, 129, 0.3)'}}>
+          <div className="w-16 h-16 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{boxShadow: '0 0 30px rgba(16, 185, 129, 0.3)'}}>
             <CheckCircle className="w-8 h-8 text-emerald-600" />
           </div>
-          <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">Event Published!</h2>
+          <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">Event Updated!</h2>
           <p className="text-sm text-[var(--color-text-secondary)]">Redirecting to your dashboard...</p>
         </div>
       </div>
@@ -67,8 +101,8 @@ const CreateEventPage = () => {
         </Link>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-[var(--color-text-primary)]">Create New Event</h1>
-          <p className="text-sm text-[var(--color-text-secondary)] mt-1">Fill in the details to publish a new campus event</p>
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--color-text-primary)]">Edit Event</h1>
+          <p className="text-sm text-[var(--color-text-secondary)] mt-1">Update the details of your event</p>
         </div>
 
         {error && (
@@ -112,7 +146,7 @@ const CreateEventPage = () => {
             <button type="submit" disabled={isSubmitting}
               className="w-full flex items-center justify-center gap-2 py-3 mt-2 rounded-xl text-sm font-bold text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] hover:shadow-lg hover:shadow-indigo-500/25 hover:-translate-y-px focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] transition-all duration-300 disabled:opacity-60"
             >
-              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Publish Event'}
+              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Changes'}
             </button>
           </form>
         </div>
@@ -136,4 +170,4 @@ const FormField = ({ label, icon, name, type, required, placeholder, value, onCh
   </div>
 );
 
-export default CreateEventPage;
+export default EditEventPage;

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getEvents, getEventById, createEvent, deleteEvent, rsvpEvent } = require('../controllers/eventController');
+const { getEvents, getEventById, createEvent, updateEvent, deleteEvent, rsvpEvent } = require('../controllers/eventController');
 const { protect, organizer } = require('../middleware/authMiddleware');
 
 router.route('/')
@@ -9,6 +9,7 @@ router.route('/')
 
 router.route('/:id')
   .get(getEventById)
+  .put(protect, organizer, updateEvent)
   .delete(protect, organizer, deleteEvent);
 
 router.route('/:id/rsvp')
