@@ -11,7 +11,10 @@ connectDB();
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || '*',
+  credentials: true
+}));
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
@@ -22,7 +25,8 @@ if (process.env.NODE_ENV === 'production') {
   const frontendPath = path.join(__dirname, '../frontend/dist');
   app.use(express.static(frontendPath));
 
-  app.get('*', (req, res) => {
+
+  app.get(/(.*)/, (req, res) => {
     res.sendFile(path.resolve(frontendPath, 'index.html'));
   });
 } else {
