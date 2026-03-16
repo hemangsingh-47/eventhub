@@ -1,26 +1,21 @@
 import { useState, useEffect, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { CalendarDays, Clock, MapPin, Users, ArrowLeft, Ticket, CheckCircle, Share2 } from 'lucide-react';
+import { CalendarDays, Clock, MapPin, Users, ArrowLeft, Share2 } from 'lucide-react';
 import AuthContext from '../context/AuthContext';
 import api from '../utils/api';
+import RSVPButton from '../components/events/RSVPButton';
 
 const EventDetailPage = () => {
   const { id } = useParams();
   const { user } = useContext(AuthContext);
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [rsvpLoading, setRsvpLoading] = useState(false);
-  const [rsvpDone, setRsvpDone] = useState(false);
 
   useEffect(() => {
     const fetchEvent = async () => {
       try {
         const { data } = await api.get(`/events/${id}`);
         setEvent(data);
-        // Check if the current user already RSVPd
-        if (user && data.attendees && data.attendees.includes(user._id)) {
-          setRsvpDone(true);
-        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -28,21 +23,7 @@ const EventDetailPage = () => {
       }
     };
     fetchEvent();
-  }, [id, user]);
-
-  const handleRSVP = async () => {
-    if (!user) return alert('Please log in to RSVP.');
-    setRsvpLoading(true);
-    try {
-      await api.post(`/events/${id}/rsvp`);
-      setRsvpDone(true);
-      setEvent(prev => ({ ...prev, availableSeats: prev.availableSeats - 1 }));
-    } catch (err) {
-      alert(err.response?.data?.message || 'RSVP failed.');
-    } finally {
-      setRsvpLoading(false);
-    }
-  };
+  }, [id]);
 
   if (loading) {
     return (
@@ -64,7 +45,6 @@ const EventDetailPage = () => {
   }
 
   const isFull = event.availableSeats === 0;
-  const seatPercent = ((event.totalSeats - event.availableSeats) / event.totalSeats) * 100;
 
   return (
     <div className="w-full relative overflow-hidden">
@@ -87,10 +67,15 @@ const EventDetailPage = () => {
           {/* Main Content */}
           <div className="lg:col-span-2">
             {/* Tags */}
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex flex-wrap items-center gap-2 mb-4">
               <span className="px-3 py-1 bg-[var(--color-primary-muted)] text-[var(--color-primary)] rounded-lg text-xs font-bold uppercase tracking-wider border border-indigo-200/50">
                 {event.category}
               </span>
+              {event.tags && event.tags.length > 0 && event.tags.map((tag, i) => (
+                <span key={i} className="px-2.5 py-1 bg-violet-50 text-violet-600 rounded-lg text-[11px] font-semibold border border-violet-200/50">
+                  {tag}
+                </span>
+              ))}
               <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${isFull ? 'bg-red-50 text-red-600 border border-red-200/50' : 'bg-emerald-50 text-emerald-700 border border-emerald-200/50'}`}>
                 {isFull ? 'Sold Out' : `${event.availableSeats} seats left`}
               </span>
@@ -129,29 +114,8 @@ const EventDetailPage = () => {
             <div className="bg-white rounded-2xl border border-[var(--color-border)] shadow-card p-6 sticky top-24">
               <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-4">Register for this event</h3>
 
-              {/* Seat Progress */}
-              <div className="mb-6">
-                <div className="flex justify-between text-xs font-semibold mb-2">
-                  <span className="text-[var(--color-text-secondary)]">{event.totalSeats - event.availableSeats} registered</span>
-                  <span className="text-[var(--color-text-tertiary)]">{event.totalSeats} total</span>
-                </div>
-                <div className="w-full h-2.5 bg-[var(--color-surface-tertiary)] rounded-full overflow-hidden">
-                  <div className={`h-full rounded-full transition-all duration-500 ${isFull ? 'bg-red-400' : seatPercent > 70 ? 'bg-amber-400' : 'bg-[var(--color-primary)]'}`} style={{width: `${seatPercent}%`}}></div>
-                </div>
-              </div>
-
-              {rsvpDone ? (
-                <div className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-sm border border-emerald-200">
-                  <CheckCircle className="w-4 h-4" /> You're registered!
-                </div>
-              ) : (
-                <button onClick={handleRSVP} disabled={isFull || rsvpLoading || !user}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] hover:shadow-lg hover:shadow-indigo-500/25 hover:-translate-y-px focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Ticket className="w-4 h-4" />
-                  {isFull ? 'Sold Out' : !user ? 'Log in to RSVP' : rsvpLoading ? 'Registering...' : 'RSVP — Free'}
-                </button>
-              )}
+              {/* Real-Time RSVP Button with Socket.io */}
+              <RSVPButton event={event} user={user} />
 
               <button className="w-full flex items-center justify-center gap-2 py-3 mt-3 rounded-xl text-sm font-semibold text-[var(--color-text-secondary)] bg-[var(--color-surface-tertiary)] hover:bg-[var(--color-surface-secondary)] border border-[var(--color-border)] hover:border-[var(--color-border-hover)] transition-all">
                 <Share2 className="w-4 h-4" /> Share Event

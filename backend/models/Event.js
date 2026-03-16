@@ -15,6 +15,7 @@ const eventSchema = new mongoose.Schema({
   availableSeats: { type: Number, required: true },
   organizerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   attendees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  tags: [{ type: String }],
   imageUrl: { type: String, default: '' },
 }, { timestamps: true });
 
