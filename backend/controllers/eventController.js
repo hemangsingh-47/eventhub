@@ -186,6 +186,17 @@ const rsvpEvent = async (req, res) => {
       // Non-blocking — RSVP still succeeds even if preference update fails
     }
 
+    // --- Socket.io: Broadcast real-time RSVP update ---
+    if (req.io) {
+      req.io.to(`event:${event._id}`).emit('rsvp:update', {
+        eventId: event._id.toString(),
+        availableSeats: event.availableSeats,
+        totalSeats: event.totalSeats,
+        attendeeCount: event.attendees.length,
+        userId: req.user._id.toString(),
+      });
+    }
+
     res.json({ message: 'RSVP successful', availableSeats: event.availableSeats });
   } catch (error) {
     res.status(500).json({ message: error.message });
