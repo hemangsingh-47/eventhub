@@ -13,6 +13,9 @@ const ratingRoutes = require('./routes/ratingRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const bookmarkRoutes = require('./routes/bookmarkRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
+const leaderboardRoutes = require('./routes/leaderboardRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+require('./jobs/reminderCron'); // Start cron jobs
 const { setupSocketHandlers } = require('./socket/handlers');
 
 dotenv.config();
@@ -50,6 +53,8 @@ app.use('/api/ratings', ratingRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/bookmarks', bookmarkRoutes);
 app.use('/api/calendar', calendarRoutes);
+app.use('/api/leaderboard', leaderboardRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Initialize Socket.io room handlers
 setupSocketHandlers(io);

@@ -10,9 +10,20 @@ const generateEventCalendar = async (req, res) => {
     if (!event) return res.status(404).json({ message: 'Event not found' });
 
     // Parse event date and time
-    // Assuming date is a Date object (00:00:00 UTC) and time is a string like "14:30"
+    // Handles both "14:30" and "02:30 PM" formats
     const eventDate = new Date(event.date);
-    const [hours, minutes] = event.time.split(':').map(Number);
+    let hours, minutes;
+    
+    if (event.time.includes('AM') || event.time.includes('PM')) {
+      const [time, modifier] = event.time.split(' ');
+      let [h, m] = time.split(':').map(Number);
+      if (h === 12) h = 0;
+      if (modifier === 'PM') h += 12;
+      hours = h;
+      minutes = m;
+    } else {
+      [hours, minutes] = event.time.split(':').map(Number);
+    }
     
     const startTime = new Date(eventDate);
     startTime.setHours(hours, minutes, 0, 0);
@@ -32,7 +43,7 @@ const generateEventCalendar = async (req, res) => {
         name: event.organizerId ? event.organizerId.name : 'Organizer',
         email: event.organizerId ? event.organizerId.email : 'noreply@campuseventhub.com'
       },
-      url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/events/${event._id}`
+      url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/events/${event._id}`
     });
 
     res.setHeader('Content-Type', 'text/calendar; charset=utf-8');

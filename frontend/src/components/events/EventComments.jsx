@@ -13,7 +13,7 @@ const EventComments = ({ eventId, user }) => {
   useEffect(() => {
     const fetchComments = async () => {
       try {
-        const { data } = await api.get(`/api/comments/${eventId}`);
+        const { data } = await api.get(`/comments/${eventId}`);
         setComments(data);
       } catch (error) {
         console.error('Error fetching comments:', error);
@@ -47,7 +47,7 @@ const EventComments = ({ eventId, user }) => {
 
     setLoading(true);
     try {
-      const { data } = await api.post('/api/comments', {
+      const { data } = await api.post('/comments', {
         eventId,
         text,
         parentId: replyTo?._id || null
@@ -66,7 +66,7 @@ const EventComments = ({ eventId, user }) => {
   const handleDelete = async (commentId) => {
     if (!window.confirm('Delete this comment?')) return;
     try {
-      await api.delete(`/api/comments/${commentId}`);
+      await api.delete(`/comments/${commentId}`);
     } catch (error) {
       alert('Failed to delete comment');
     }
