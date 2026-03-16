@@ -2,8 +2,8 @@ import { CalendarPlus } from 'lucide-react';
 
 const CalendarExport = ({ eventId }) => {
   const handleExport = () => {
-    // Navigate to the API endpoint which will download the .ics file
-    window.open(`http://localhost:5000/api/calendar/${eventId}`, '_blank');
+    // Relative URL works thanks to Vite proxy in dev and express.static in prod
+    window.open(`/api/calendar/${eventId}`, '_blank');
   };
 
   return (

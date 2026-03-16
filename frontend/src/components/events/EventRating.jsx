@@ -14,7 +14,7 @@ const EventRating = ({ eventId, user }) => {
   useEffect(() => {
     const fetchRating = async () => {
       try {
-        const { data } = await api.get(`/api/ratings/${eventId}`);
+        const { data } = await api.get(`/ratings/${eventId}`);
         setAvgRating(data.average);
         setTotalRatings(data.count);
       } catch (error) {
@@ -43,7 +43,7 @@ const EventRating = ({ eventId, user }) => {
     if (!user) return alert('Please log in to rate this event.');
     setLoading(true);
     try {
-      await api.post('/api/ratings', { eventId, value });
+      await api.post('/ratings', { eventId, value });
       setRating(value);
     } catch (error) {
       alert('Failed to submit rating');

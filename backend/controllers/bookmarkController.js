@@ -30,12 +30,10 @@ const toggleBookmark = async (req, res) => {
   }
 };
 
-// @desc    Get user's bookmarked events
-// @route   GET /api/bookmarks
-// @access  Private
 const getBookmarkedEvents = async (req, res) => {
   try {
     const userId = req.user._id;
+    
     const bookmarks = await Bookmark.find({ user: userId })
       .populate({
         path: 'event',

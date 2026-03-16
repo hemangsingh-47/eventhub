@@ -14,7 +14,7 @@ const BookmarkButton = ({ eventId }) => {
     const checkStatus = async () => {
       if (!user) return;
       try {
-        const { data } = await api.get(`/api/bookmarks/check/${eventId}`);
+        const { data } = await api.get(`/bookmarks/check/${eventId}`);
         setIsBookmarked(data.bookmarked);
       } catch (error) {
         console.error('Failed to check bookmark status', error);
@@ -34,7 +34,7 @@ const BookmarkButton = ({ eventId }) => {
       // Optimistic UI update
       setIsBookmarked(!isBookmarked);
       
-      const { data } = await api.post(`/api/bookmarks/${eventId}`);
+      const { data } = await api.post(`/bookmarks/${eventId}`);
       // Ensure sync with server state
       setIsBookmarked(data.bookmarked);
     } catch (error) {

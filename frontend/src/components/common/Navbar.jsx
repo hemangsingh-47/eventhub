@@ -1,7 +1,8 @@
 import { useContext, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, Calendar, Menu, X, LayoutDashboard, Bookmark } from 'lucide-react';
+import { LogOut, Calendar, Menu, X, LayoutDashboard, Bookmark, Trophy } from 'lucide-react';
 import AuthContext from '../../context/AuthContext';
+import NotificationBell from './NotificationBell';
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -38,9 +39,16 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-1">
             <NavLink to="/" active={isActive('/')}>Events</NavLink>
             {user && (
-              <NavLink to="/bookmarks" active={isActive('/bookmarks')}>
-                <Bookmark className="w-3.5 h-3.5" />Saved
-              </NavLink>
+              <>
+                <NavLink to="/bookmarks" active={isActive('/bookmarks')}>
+                  <Bookmark className="w-3.5 h-3.5" />Saved
+                </NavLink>
+                {user.role === 'student' && (
+                  <NavLink to="/leaderboard" active={isActive('/leaderboard')}>
+                    <Trophy className="w-3.5 h-3.5" />Ranks
+                  </NavLink>
+                )}
+              </>
             )}
             {user?.role === 'organizer' && (
               <NavLink to="/dashboard" active={isActive('/dashboard')}>
@@ -59,6 +67,7 @@ const Navbar = () => {
                   </div>
                   <span className="text-sm font-semibold text-[var(--color-text-primary)]">{user.name}</span>
                 </div>
+                <NotificationBell />
                 <button
                   onClick={handleLogout}
                   className="p-2 text-[var(--color-text-tertiary)] hover:text-[var(--color-danger)] hover:bg-red-50 transition-all rounded-xl"
@@ -92,7 +101,14 @@ const Navbar = () => {
         {mobileOpen && (
           <div className="md:hidden pb-4 pt-2 space-y-1 border-t border-[var(--color-border)] mt-2 animate-fade-in-up">
             <MobileLink to="/" onClick={() => setMobileOpen(false)}>Events</MobileLink>
-            {user && <MobileLink to="/bookmarks" onClick={() => setMobileOpen(false)}>Saved Events</MobileLink>}
+            {user && (
+              <>
+                <MobileLink to="/bookmarks" onClick={() => setMobileOpen(false)}>Saved Events</MobileLink>
+                {user.role === 'student' && (
+                  <MobileLink to="/leaderboard" onClick={() => setMobileOpen(false)}>Leaderboard</MobileLink>
+                )}
+              </>
+            )}
             {user?.role === 'organizer' && <MobileLink to="/dashboard" onClick={() => setMobileOpen(false)}>Dashboard</MobileLink>}
             {!user ? (
               <>

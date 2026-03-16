@@ -5,7 +5,9 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, enum: ['student', 'organizer'], default: 'student' },
-  preferences: { type: Map, of: Number, default: {} }
+  preferences: { type: Map, of: Number, default: {} },
+  points: { type: Number, default: 0 },
+  badges: [{ type: String }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);
