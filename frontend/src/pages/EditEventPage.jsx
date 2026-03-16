@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { CalendarPlus, Image, MapPin, Clock, Users, Loader2, ArrowLeft, CheckCircle } from 'lucide-react';
+import { CalendarPlus, Image, MapPin, Clock, Users, Loader2, ArrowLeft, CheckCircle, Tag, X } from 'lucide-react';
 import api from '../utils/api';
 
 const categories = [
@@ -23,8 +23,9 @@ const EditEventPage = () => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
   const [form, setForm] = useState({
-    title: '', description: '', date: '', time: '', location: '', category: 'hackathon', totalSeats: '', imageUrl: '',
+    title: '', description: '', date: '', time: '', location: '', category: 'hackathon', totalSeats: '', imageUrl: '', tags: [],
   });
+  const [tagInput, setTagInput] = useState('');
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -39,6 +40,7 @@ const EditEventPage = () => {
           category: data.category,
           totalSeats: data.totalSeats,
           imageUrl: data.imageUrl || '',
+          tags: data.tags || [],
         });
       } catch (err) {
         setError('Failed to load event.');
@@ -55,7 +57,7 @@ const EditEventPage = () => {
     e.preventDefault();
     setIsSubmitting(true); setError(null);
     try {
-      await api.put(`/events/${id}`, { ...form, totalSeats: parseInt(form.totalSeats) });
+      await api.put(`/events/${id}`, { ...form, totalSeats: parseInt(form.totalSeats), tags: form.tags });
       setSuccess(true);
       setTimeout(() => navigate('/dashboard'), 1500);
     } catch (err) {
@@ -141,6 +143,41 @@ const EditEventPage = () => {
                 </select>
               </div>
               <FormField label="Image URL" icon={<Image/>} name="imageUrl" type="url" placeholder="https://..." value={form.imageUrl} onChange={handleChange} />
+            </div>
+
+            {/* Tags Input */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-[var(--color-text-primary)] flex items-center gap-1.5">
+                <Tag className="w-3.5 h-3.5 text-[var(--color-text-tertiary)]" />
+                Tags <span className="text-xs font-normal text-[var(--color-text-tertiary)]">(powers AI recommendations)</span>
+              </label>
+              <div className="flex flex-wrap gap-2 p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-secondary)] focus-within:bg-white focus-within:border-[var(--color-primary)] focus-within:ring-2 focus-within:ring-indigo-500/10 transition-all min-h-[48px]">
+                {form.tags.map((tag, i) => (
+                  <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-semibold border border-indigo-200/50">
+                    {tag}
+                    <button type="button" onClick={() => setForm(prev => ({ ...prev, tags: prev.tags.filter((_, idx) => idx !== i) }))} className="hover:text-red-500 transition-colors">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+                <input
+                  type="text"
+                  placeholder={form.tags.length === 0 ? 'Type a tag and press Enter...' : ''}
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
+                      e.preventDefault();
+                      const newTag = tagInput.trim().toLowerCase();
+                      if (!form.tags.includes(newTag)) {
+                        setForm(prev => ({ ...prev, tags: [...prev.tags, newTag] }));
+                      }
+                      setTagInput('');
+                    }
+                  }}
+                  className="flex-1 min-w-[120px] bg-transparent outline-none text-sm font-medium text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)]"
+                />
+              </div>
             </div>
 
             <button type="submit" disabled={isSubmitting}

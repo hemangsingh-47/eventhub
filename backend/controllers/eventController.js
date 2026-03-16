@@ -1,4 +1,5 @@
 const Event = require('../models/Event');
+const User = require('../models/User');
 
 // @desc    Get all events (with pagination & search)
 // @route   GET /api/events
@@ -56,7 +57,7 @@ const getEventById = async (req, res) => {
 // @access  Private/Organizer
 const createEvent = async (req, res) => {
   try {
-    const { title, description, date, time, location, category, totalSeats, imageUrl } = req.body;
+    const { title, description, date, time, location, category, totalSeats, imageUrl, tags } = req.body;
 
     const event = new Event({
       title,
@@ -69,6 +70,7 @@ const createEvent = async (req, res) => {
       availableSeats: totalSeats,
       organizerId: req.user._id,
       attendees: [],
+      tags: tags || [],
       imageUrl
     });
 
@@ -95,7 +97,7 @@ const updateEvent = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to edit this event' });
     }
 
-    const { title, description, date, time, location, category, totalSeats, imageUrl } = req.body;
+    const { title, description, date, time, location, category, totalSeats, imageUrl, tags } = req.body;
 
     // If totalSeats changed, adjust availableSeats proportionally
     if (totalSeats && totalSeats !== event.totalSeats) {
@@ -111,6 +113,7 @@ const updateEvent = async (req, res) => {
     event.location = location || event.location;
     event.category = category || event.category;
     if (imageUrl !== undefined) event.imageUrl = imageUrl;
+    if (tags !== undefined) event.tags = tags;
 
     const updatedEvent = await event.save();
     res.json(updatedEvent);
@@ -165,6 +168,23 @@ const rsvpEvent = async (req, res) => {
     event.attendees.push(req.user._id);
     event.availableSeats -= 1;
     await event.save();
+
+    // --- AI: Update user preference vector ---
+    try {
+      const user = await User.findById(req.user._id);
+      const tagsToLearn = [event.category, ...(event.tags || [])];
+      tagsToLearn.forEach(tag => {
+        const normalized = tag.toLowerCase().trim();
+        if (normalized) {
+          const current = user.preferences.get(normalized) || 0;
+          user.preferences.set(normalized, current + 1);
+        }
+      });
+      await user.save();
+    } catch (prefError) {
+      console.error('Failed to update user preferences:', prefError);
+      // Non-blocking — RSVP still succeeds even if preference update fails
+    }
 
     res.json({ message: 'RSVP successful', availableSeats: event.availableSeats });
   } catch (error) {
