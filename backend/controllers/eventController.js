@@ -1,6 +1,8 @@
 const Event = require('../models/Event');
 const User = require('../models/User');
 
+const { moderate } = require('./aiController');
+
 // @desc    Get all events (with pagination & search)
 // @route   GET /api/events
 // @access  Public
@@ -58,6 +60,15 @@ const getEventById = async (req, res) => {
 const createEvent = async (req, res) => {
   try {
     const { title, description, date, time, location, category, totalSeats, imageUrl, tags } = req.body;
+
+    // AI Content Moderation
+    const moderation = await moderate(description, 'event description');
+    if (!moderation.approved) {
+      return res.status(400).json({ 
+        message: 'Event description violates community guidelines.', 
+        reason: moderation.reason 
+      });
+    }
 
     const event = new Event({
       title,

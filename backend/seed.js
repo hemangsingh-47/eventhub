@@ -40,7 +40,7 @@ const events = [
   },
   {
     title: "Cultural Night: Rhythms & Roots",
-    description: "An electrifying evening of dance, music, and drama performances by student clubs. Food stalls and live DJ after the show!",
+    description: "Experience a vibrant showcase of traditional dance and modern theater. This annual gala features the best talent from our campus cultural clubs.",
     date: "2026-04-28",
     time: "06:00 PM",
     location: "Open Air Theatre",

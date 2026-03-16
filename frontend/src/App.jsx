@@ -5,6 +5,7 @@ import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
 import ScrollToTop from './components/common/ScrollToTop';
 import ProtectedRoute from './components/common/ProtectedRoute';
+import Chatbot from './components/common/Chatbot';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -48,6 +49,7 @@ function App() {
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </main>
+            <Chatbot />
             <Footer />
           </div>
         </ToastProvider>

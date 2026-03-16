@@ -1,8 +1,8 @@
+require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const path = require('path');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { Server } = require('socket.io');
@@ -18,10 +18,10 @@ const bookmarkRoutes = require('./routes/bookmarkRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
 const leaderboardRoutes = require('./routes/leaderboardRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const aiRoutes = require('./routes/aiRoutes');
 require('./jobs/reminderCron'); // Start cron jobs
 const { setupSocketHandlers } = require('./socket/handlers');
 
-dotenv.config();
 connectDB();
 
 const app = express();
@@ -70,6 +70,7 @@ app.use('/api/bookmarks', bookmarkRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Initialize Socket.io room handlers
 setupSocketHandlers(io);

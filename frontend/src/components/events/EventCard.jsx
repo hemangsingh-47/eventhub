@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Clock, CalendarDays, ArrowUpRight, Users, Star } from 'lucide-react';
+import { MapPin, Clock, CalendarDays, ArrowUpRight, Users, Star, Brain } from 'lucide-react';
 import api from '../../utils/api';
 
 const categoryColors = {
@@ -15,7 +15,7 @@ const categoryColors = {
   other: { bg: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-200/50' },
 };
 
-const EventCard = ({ event }) => {
+const EventCard = ({ event, aiReason }) => {
   const [ratingData, setRatingData] = useState({ average: 0, count: 0 });
 
   useEffect(() => {
@@ -60,6 +60,15 @@ const EventCard = ({ event }) => {
         <div className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-xl opacity-0 -translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-sm">
           <ArrowUpRight className="h-4 w-4 text-[var(--color-text-primary)]" strokeWidth={2.5} />
         </div>
+
+        {/* AI Reason Badge */}
+        {aiReason && (
+          <div className="absolute bottom-3 left-3 right-3 p-2 bg-violet-600/90 backdrop-blur-sm rounded-xl text-[10px] font-bold text-white border border-white/20 animate-premium-in shadow-lg">
+            <span className="flex items-center gap-1.5 uppercase tracking-wider">
+              <Brain className="w-3 h-3" /> Recommended: {aiReason}
+            </span>
+          </div>
+        )}
       </div>
       
       {/* Content */}

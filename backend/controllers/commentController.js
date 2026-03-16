@@ -1,4 +1,5 @@
 const Comment = require('../models/Comment');
+const { moderate } = require('./aiController');
 
 // @desc    Add a comment (or reply) to an event
 // @route   POST /api/comments
@@ -9,6 +10,15 @@ const addComment = async (req, res) => {
 
     if (!text || !eventId) {
       return res.status(400).json({ message: 'Event ID and comment text are required' });
+    }
+
+    // AI Content Moderation
+    const moderation = await moderate(text, 'comment');
+    if (!moderation.approved) {
+      return res.status(400).json({ 
+        message: 'Comment violates community guidelines.', 
+        reason: moderation.reason 
+      });
     }
 
     const comment = new Comment({

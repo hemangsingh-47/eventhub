@@ -7,6 +7,9 @@ import StatsCards from '../components/dashboard/StatsCards';
 import RSVPChart from '../components/dashboard/RSVPChart';
 import SeatUtilization from '../components/dashboard/SeatUtilization';
 
+import { useAI } from '../hooks/useAI';
+import { FileDown, Sparkles, Brain, X as CloseX, Send, Download, Mail } from 'lucide-react';
+
 const DashboardPage = () => {
   const { user } = useContext(AuthContext);
   const [events, setEvents] = useState([]);
@@ -14,6 +17,19 @@ const DashboardPage = () => {
   const [rsvpTrend, setRsvpTrend] = useState([]);
   const [seatUtil, setSeatUtil] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // AI Summary State
+  const { call: generateSummary, loading: isGeneratingSummary } = useAI('event-summary');
+  const [selectedEventSummary, setSelectedEventSummary] = useState(null);
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
+
+  const handleGenerateSummary = async (eventId) => {
+    const result = await generateSummary({ eventId });
+    if (result) {
+      setSelectedEventSummary(result);
+      setShowSummaryModal(true);
+    }
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -168,6 +184,14 @@ const DashboardPage = () => {
                           <p className="text-[10px] uppercase font-bold text-[var(--color-text-tertiary)] tracking-wider mt-1 mr-1">Left</p>
                         </div>
                         <div className="flex items-center gap-1">
+                          <button 
+                            onClick={() => handleGenerateSummary(event._id)}
+                            disabled={isGeneratingSummary}
+                            className="p-2.5 rounded-xl text-violet-600 hover:bg-violet-50 transition-all"
+                            title="Generate AI Summary"
+                          >
+                            <Sparkles className={`w-4 h-4 ${isGeneratingSummary ? 'animate-pulse' : ''}`} />
+                          </button>
                           <Link to={`/edit-event/${event._id}`} className="p-2.5 rounded-xl text-[var(--color-text-tertiary)] hover:text-indigo-600 hover:bg-indigo-50 transition-all opacity-0 group-hover:opacity-100" title="Edit">
                             <Pencil className="w-4 h-4" />
                           </Link>
@@ -189,6 +213,93 @@ const DashboardPage = () => {
           </>
         )}
       </div>
+
+      {/* AI Summary Modal */}
+      {showSummaryModal && selectedEventSummary && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden animate-premium-in flex flex-col max-h-[90vh]">
+            <div className="p-6 bg-violet-600 text-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
+                  <Brain className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold">AI Post-Event Summary</h3>
+                  <p className="text-xs text-violet-200">Generated for {selectedEventSummary.eventTitle}</p>
+                </div>
+              </div>
+              <button onClick={() => setShowSummaryModal(false)} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
+                <CloseX className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-8 overflow-y-auto custom-scrollbar flex-grow">
+              <div className="grid grid-cols-3 gap-6 mb-8 text-center">
+                <div className="p-4 rounded-2xl bg-violet-50 border border-violet-100">
+                  <p className="text-[10px] font-bold text-violet-400 uppercase tracking-widest mb-1">Attendance</p>
+                  <p className="text-2xl font-black text-violet-700">{selectedEventSummary.stats.attendeeCount}</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-violet-50 border border-violet-100">
+                  <p className="text-[10px] font-bold text-violet-400 uppercase tracking-widest mb-1">Utilization</p>
+                  <p className="text-2xl font-black text-violet-700">{Math.round((selectedEventSummary.stats.attendeeCount / selectedEventSummary.stats.totalSeats) * 100)}%</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-violet-50 border border-violet-100">
+                  <p className="text-[10px] font-bold text-violet-400 uppercase tracking-widest mb-1">Engagement</p>
+                  <p className="text-2xl font-black text-violet-700">High</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <section>
+                  <h4 className="text-xs font-black text-[var(--color-text-primary)] uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <Sparkles className="w-3.5 h-3.5 text-violet-600" /> Executive Summary
+                  </h4>
+                  <div className="p-5 rounded-2xl bg-[var(--color-surface-secondary)] border border-[var(--color-border)] text-sm font-medium text-[var(--color-text-secondary)] leading-relaxed italic">
+                    "{selectedEventSummary.summary}"
+                  </div>
+                </section>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <section>
+                    <h4 className="text-xs font-black text-emerald-600 uppercase tracking-widest mb-3">Key Highlights</h4>
+                    <ul className="space-y-2">
+                      {selectedEventSummary.highlights.map((h, i) => (
+                        <li key={i} className="text-xs font-medium text-[var(--color-text-secondary)] flex items-start gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" /> {h}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                  <section>
+                    <h4 className="text-xs font-black text-amber-600 uppercase tracking-widest mb-3">Improvement Areas</h4>
+                    <ul className="space-y-2">
+                      {selectedEventSummary.improvements.map((im, i) => (
+                        <li key={i} className="text-xs font-medium text-[var(--color-text-secondary)] flex items-start gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" /> {im}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 bg-[var(--color-surface-secondary)] border-t border-[var(--color-border)] flex items-center justify-between">
+              <p className="text-[10px] font-bold text-[var(--color-text-tertiary)] uppercase tracking-widest">
+                Confidential Report · Internal Use Only
+              </p>
+              <div className="flex items-center gap-3">
+                <button className="flex items-center gap-2 px-4 py-2 bg-white border border-[var(--color-border)] rounded-xl text-xs font-bold text-[var(--color-text-primary)] hover:border-violet-200 hover:text-violet-600 transition-all shadow-sm">
+                  <Download className="w-3.5 h-3.5" /> Export PDF
+                </button>
+                <button className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-xl text-xs font-bold hover:bg-violet-700 transition-all shadow-lg shadow-violet-500/20">
+                  <Mail className="w-3.5 h-3.5" /> Email Organizers
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

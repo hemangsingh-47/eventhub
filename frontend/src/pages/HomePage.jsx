@@ -2,7 +2,8 @@ import { useState, useEffect, useContext } from 'react';
 import api from '../utils/api';
 import AuthContext from '../context/AuthContext';
 import EventCard from '../components/events/EventCard';
-import { Search, Sparkles, ArrowRight, Calendar, Users, Zap, Brain } from 'lucide-react';
+import { Search, Sparkles, ArrowRight, Calendar, Users, Zap, Brain, X, Info, Loader2 } from 'lucide-react';
+import { useAI } from '../hooks/useAI';
 
 const HomePage = () => {
   const { user } = useContext(AuthContext);
@@ -12,6 +13,31 @@ const HomePage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [aiFilters, setAiFilters] = useState(null);
+  const { call: triggerSmartSearch, loading: aiSearching } = useAI('smart-search');
+
+  const handleSmartSearch = async () => {
+    if (!searchTerm.trim()) return;
+    const result = await triggerSmartSearch({ query: searchTerm });
+    if (result) {
+      setEvents(result.events);
+      setAiFilters(result.interpreted);
+    }
+  };
+
+  const removeFilter = (key) => {
+    const newFilters = { ...aiFilters, [key]: null };
+    // Check if any filters are left
+    const hasFilters = Object.values(newFilters).some(v => v !== null);
+    if (!hasFilters) {
+      setAiFilters(null);
+      // Re-trigger debounced search
+      setDebouncedSearch('');
+    } else {
+      setAiFilters(newFilters);
+      // In a real app, you'd re-filter the events here
+    }
+  };
 
   // AI Recommendations state
   const [recommendations, setRecommendations] = useState([]);
@@ -48,9 +74,8 @@ const HomePage = () => {
       if (!user) return;
       try {
         setRecLoading(true);
-        const { data } = await api.get('/recommendations');
-        setRecommendations(data.recommendations || []);
-        setRecStrategy(data.strategy || '');
+        const { data } = await api.get('/ai/recommendations');
+        setRecommendations(data || []);
       } catch (error) {
         console.error("Error fetching recommendations", error);
       } finally {
@@ -100,9 +125,36 @@ const HomePage = () => {
                 placeholder="Search events, workshops, hackathons..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSmartSearch()}
               />
-              <kbd className="absolute right-5 hidden sm:inline-flex items-center gap-0.5 border border-[var(--color-border)] rounded-lg px-2 py-1 text-[11px] font-medium text-[var(--color-text-tertiary)] bg-[var(--color-surface-tertiary)]">⌘K</kbd>
+              <button 
+                onClick={handleSmartSearch}
+                className="absolute right-3 p-2 bg-[var(--color-primary)] text-white rounded-xl hover:bg-[var(--color-primary-hover)] transition-colors disabled:opacity-50"
+                disabled={aiSearching}
+              >
+                {aiSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+              </button>
             </div>
+
+            {/* AI Interpreted Chips */}
+            {aiFilters && (
+              <div className="flex flex-wrap justify-center gap-2 mt-4 animate-premium-in">
+                <span className="text-[10px] font-bold text-violet-600 uppercase tracking-widest flex items-center gap-1 mb-1 w-full justify-center">
+                  <Brain className="w-3 h-3" /> AI Interpreted:
+                </span>
+                {Object.entries(aiFilters).map(([key, value]) => {
+                  if (!value) return null;
+                  return (
+                    <div key={key} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-50 border border-violet-100 text-xs font-semibold text-violet-700">
+                      <span className="opacity-60">{key}:</span> {value.toString()}
+                      <button onClick={() => removeFilter(key)} className="hover:text-red-500 transition-colors">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Stats Row */}
@@ -146,11 +198,9 @@ const HomePage = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {recommendations.slice(0, 3).map((event, i) => (
                   <div key={event._id} className="animate-fade-in-up" style={{animationDelay: `${i * 0.1}s`}}>
-                    <EventCard event={event} />
+                    <EventCard event={event} aiReason={event.aiReason} />
                   </div>
-                ))}
               </div>
             )}
           </div>
