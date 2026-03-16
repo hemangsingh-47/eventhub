@@ -10,6 +10,9 @@ const eventRoutes = require('./routes/eventRoutes');
 const recommendationRoutes = require('./routes/recommendationRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const ratingRoutes = require('./routes/ratingRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
+const bookmarkRoutes = require('./routes/bookmarkRoutes');
+const calendarRoutes = require('./routes/calendarRoutes');
 const { setupSocketHandlers } = require('./socket/handlers');
 
 dotenv.config();
@@ -44,6 +47,9 @@ app.use('/api/events', eventRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/ratings', ratingRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/bookmarks', bookmarkRoutes);
+app.use('/api/calendar', calendarRoutes);
 
 // Initialize Socket.io room handlers
 setupSocketHandlers(io);

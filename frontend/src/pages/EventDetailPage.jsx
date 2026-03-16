@@ -6,6 +6,9 @@ import api from '../utils/api';
 import RSVPButton from '../components/events/RSVPButton';
 import EventComments from '../components/events/EventComments';
 import EventRating from '../components/events/EventRating';
+import BookmarkButton from '../components/events/BookmarkButton';
+import CalendarExport from '../components/events/CalendarExport';
+import ShareButton from '../components/events/ShareButton';
 
 const EventDetailPage = () => {
   const { id } = useParams();
@@ -128,9 +131,11 @@ const EventDetailPage = () => {
               {/* Real-Time RSVP Button with Socket.io */}
               <RSVPButton event={event} user={user} />
 
-              <button className="w-full flex items-center justify-center gap-2 py-3 mt-3 rounded-xl text-sm font-semibold text-[var(--color-text-secondary)] bg-[var(--color-surface-tertiary)] hover:bg-[var(--color-surface-secondary)] border border-[var(--color-border)] hover:border-[var(--color-border-hover)] transition-all">
-                <Share2 className="w-4 h-4" /> Share Event
-              </button>
+              <div className="grid grid-cols-3 gap-2 mt-4">
+                <BookmarkButton eventId={id} />
+                <CalendarExport eventId={id} />
+                <ShareButton eventId={id} title={event.title} />
+              </div>
             </div>
           </div>
         </div>

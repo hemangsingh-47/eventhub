@@ -1,28 +1,46 @@
 import { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, MapPin, Clock, Plus, BarChart3, Users, Trash2, ArrowUpRight, TrendingUp, Pencil } from 'lucide-react';
+import { Calendar, MapPin, Clock, Plus, ArrowUpRight, Pencil, Trash2, Loader2, RefreshCw } from 'lucide-react';
 import AuthContext from '../context/AuthContext';
 import api from '../utils/api';
+import StatsCards from '../components/dashboard/StatsCards';
+import RSVPChart from '../components/dashboard/RSVPChart';
+import SeatUtilization from '../components/dashboard/SeatUtilization';
 
 const DashboardPage = () => {
   const { user } = useContext(AuthContext);
   const [events, setEvents] = useState([]);
+  const [stats, setStats] = useState({});
+  const [rsvpTrend, setRsvpTrend] = useState([]);
+  const [seatUtil, setSeatUtil] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      // Fetch stats and events in parallel
+      const [eventsRes, statsRes, trendRes, utilRes] = await Promise.all([
+        api.get('/events'),
+        api.get('/api/analytics/overview'),
+        api.get('/api/analytics/rsvp-trend'),
+        api.get('/api/analytics/seat-util')
+      ]);
+
+      const myEvents = eventsRes.data.events.filter(e => e.organizerId?._id === user?._id || e.organizerId === user?._id);
+      
+      setEvents(myEvents);
+      setStats(statsRes.data);
+      setRsvpTrend(trendRes.data);
+      setSeatUtil(utilRes.data);
+    } catch (err) {
+      console.error('Error fetching dashboard data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchMyEvents = async () => {
-      try {
-        setLoading(true);
-        const { data } = await api.get('/events');
-        const myEvents = data.events.filter(e => e.organizerId?._id === user?._id || e.organizerId === user?._id);
-        setEvents(myEvents);
-      } catch (err) {
-        console.error('Error fetching events:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (user) fetchMyEvents();
+    if (user) fetchDashboardData();
   }, [user]);
 
   const handleDelete = async (id) => {
@@ -30,22 +48,15 @@ const DashboardPage = () => {
     try {
       await api.delete(`/events/${id}`);
       setEvents(prev => prev.filter(e => e._id !== id));
+      // Refresh stats after deletion
+      fetchDashboardData();
     } catch (err) {
       alert('Failed to delete event.');
     }
   };
 
-  const totalSeats = events.reduce((s, e) => s + e.totalSeats, 0);
-  const totalRSVPs = events.reduce((s, e) => s + (e.totalSeats - e.availableSeats), 0);
-
-  const stats = [
-    { label: 'Active Events', value: events.length, icon: <BarChart3 className="w-5 h-5" />, color: 'text-indigo-600', bg: 'bg-indigo-50', change: '+2 this week' },
-    { label: 'Total RSVPs', value: totalRSVPs, icon: <Users className="w-5 h-5" />, color: 'text-emerald-600', bg: 'bg-emerald-50', change: '+12% growth' },
-    { label: 'Total Capacity', value: totalSeats, icon: <TrendingUp className="w-5 h-5" />, color: 'text-violet-600', bg: 'bg-violet-50', change: 'Across all events' },
-  ];
-
   return (
-    <div className="w-full relative overflow-hidden">
+    <div className="w-full relative overflow-hidden bg-[var(--color-surface-primary)]">
       <div className="absolute inset-0 bg-mesh pointer-events-none"></div>
       
       <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-24 pb-16 relative z-10">
@@ -53,104 +64,130 @@ const DashboardPage = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
           <div>
-            <p className="text-sm font-semibold text-[var(--color-primary)] mb-1">Dashboard</p>
+            <p className="text-sm font-semibold text-[var(--color-primary)] mb-1">Analytics Dashboard</p>
             <h1 className="text-3xl font-bold tracking-tight text-[var(--color-text-primary)]">
               Welcome back, {user?.name?.split(' ')[0]} 👋
             </h1>
-            <p className="text-sm text-[var(--color-text-secondary)] mt-1">Here's an overview of your events</p>
+            <p className="text-sm text-[var(--color-text-secondary)] mt-1">Here's an overview of your events performance</p>
           </div>
-          <Link to="/create-event"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:bg-[var(--color-primary-hover)] hover:shadow-lg hover:shadow-indigo-500/25 hover:-translate-y-px transition-all duration-300"
-          >
-            <Plus className="w-4 h-4" strokeWidth={3} /> New Event
-          </Link>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={fetchDashboardData}
+              disabled={loading}
+              className="p-2.5 rounded-xl bg-white border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-indigo-600 hover:border-indigo-200 hover:shadow-sm transition-all shadow-sm"
+              title="Refresh Data"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+            <Link to="/create-event"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#000000] text-white rounded-xl font-semibold text-sm hover:shadow-lg hover:-translate-y-px transition-all duration-300"
+            >
+              <Plus className="w-4 h-4" strokeWidth={3} /> New Event
+            </Link>
+          </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-          {stats.map((stat, i) => (
-            <div key={i} className="bg-white rounded-2xl border border-[var(--color-border)] p-5 hover:shadow-card-hover transition-all duration-300 group">
-              <div className="flex items-center justify-between mb-3">
-                <div className={`p-2 rounded-xl ${stat.bg} ${stat.color}`}>{stat.icon}</div>
-                <span className="text-[11px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wider">{stat.label}</span>
-              </div>
-              <p className="text-3xl font-extrabold text-[var(--color-text-primary)] tracking-tight">{stat.value}</p>
-              <p className="text-xs text-[var(--color-text-tertiary)] mt-1 font-medium">{stat.change}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Events Table */}
-        <div className="bg-white rounded-2xl border border-[var(--color-border)] shadow-card overflow-hidden">
-          <div className="px-6 py-4 border-b border-[var(--color-border)] flex items-center justify-between">
-            <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Your Events</h2>
-            <span className="text-xs font-semibold text-[var(--color-text-tertiary)] bg-[var(--color-surface-tertiary)] px-2.5 py-1 rounded-lg">{events.length} total</span>
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-32">
+            <Loader2 className="w-10 h-10 animate-spin text-indigo-600 mb-4" />
+            <p className="text-sm font-semibold text-[var(--color-text-tertiary)] animate-pulse">Loading dashboard...</p>
           </div>
+        ) : (
+          <>
+            {/* Top Level Stats */}
+            <StatsCards stats={stats} />
 
-          {loading ? (
-            <div className="flex justify-center py-16">
-              <div className="relative">
-                <div className="h-8 w-8 border-2 border-[var(--color-surface-tertiary)] rounded-full"></div>
-                <div className="absolute top-0 h-8 w-8 border-2 border-transparent border-t-[var(--color-primary)] rounded-full animate-spin"></div>
-              </div>
-            </div>
-          ) : events.length === 0 ? (
-            <div className="text-center py-16 px-6">
-              <div className="bg-[var(--color-surface-tertiary)] h-14 w-14 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Calendar className="h-6 w-6 text-[var(--color-text-tertiary)]" />
-              </div>
-              <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-1">No events yet</h3>
-              <p className="text-sm text-[var(--color-text-secondary)] mb-6">Create your first event to get started</p>
-              <Link to="/create-event" className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:bg-[var(--color-primary-hover)] transition-all">
-                <Plus className="w-4 h-4" strokeWidth={3} /> Create Event
-              </Link>
-            </div>
-          ) : (
-            <div className="divide-y divide-[var(--color-border)]">
-              {events.map(event => (
-                <div key={event._id} className="px-6 py-4 flex items-center gap-4 hover:bg-[var(--color-surface-secondary)] transition-colors group">
-                  {/* Thumbnail */}
-                  <div className="h-12 w-12 rounded-xl bg-[var(--color-surface-tertiary)] overflow-hidden flex-shrink-0">
-                    {event.imageUrl ? (
-                      <img src={event.imageUrl} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[var(--color-text-tertiary)]"><Calendar className="w-5 h-5"/></div>
-                    )}
+            {/* Charts Row */}
+            {events.length > 0 && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+                <div className="lg:col-span-2 bg-white rounded-2xl border border-[var(--color-border)] shadow-sm p-6">
+                  <div className="mb-6">
+                    <h3 className="text-base font-bold text-[var(--color-text-primary)]">RSVP Trend</h3>
+                    <p className="text-xs text-[var(--color-text-tertiary)] mt-0.5">Total RSVPs across your latest events</p>
                   </div>
-
-                  {/* Info */}
-                  <div className="flex-grow min-w-0">
-                    <h3 className="font-semibold text-sm text-[var(--color-text-primary)] truncate">{event.title}</h3>
-                    <div className="flex items-center gap-3 text-xs text-[var(--color-text-tertiary)] mt-0.5 font-medium">
-                      <span className="flex items-center gap-1"><Calendar className="w-3 h-3"/>{new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                      <span className="flex items-center gap-1"><Clock className="w-3 h-3"/>{event.time}</span>
-                      <span className="flex items-center gap-1"><MapPin className="w-3 h-3"/>{event.location}</span>
-                    </div>
-                  </div>
-
-                  {/* Seats */}
-                  <div className="flex items-center gap-4 flex-shrink-0">
-                    <div className="text-right hidden sm:block">
-                      <p className="text-sm font-bold text-[var(--color-text-primary)]">{event.availableSeats}<span className="text-[var(--color-text-tertiary)] font-normal">/{event.totalSeats}</span></p>
-                      <p className="text-[11px] text-[var(--color-text-tertiary)]">seats left</p>
-                    </div>
-                    <Link to={`/edit-event/${event._id}`} className="p-2 rounded-xl text-[var(--color-text-tertiary)] hover:text-indigo-600 hover:bg-indigo-50 transition-all opacity-0 group-hover:opacity-100" title="Edit">
-                      <Pencil className="w-4 h-4" />
-                    </Link>
-                    <Link to={`/events/${event._id}`} className="p-2 rounded-xl text-[var(--color-text-tertiary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary-muted)] transition-all">
-                      <ArrowUpRight className="w-4 h-4" />
-                    </Link>
-                    <button onClick={() => handleDelete(event._id)}
-                      className="p-2 rounded-xl text-[var(--color-text-tertiary)] hover:text-[var(--color-danger)] hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                  <RSVPChart data={rsvpTrend} />
                 </div>
-              ))}
+                
+                <div className="lg:col-span-1 bg-white rounded-2xl border border-[var(--color-border)] shadow-sm p-6">
+                  <div className="mb-6">
+                    <h3 className="text-base font-bold text-[var(--color-text-primary)]">Overall Seat Utilization</h3>
+                    <p className="text-xs text-[var(--color-text-tertiary)] mt-0.5">Booked vs Available Capacity</p>
+                  </div>
+                  <SeatUtilization data={seatUtil} />
+                </div>
+              </div>
+            )}
+
+            {/* Events Table List */}
+            <div className="bg-white rounded-2xl border border-[var(--color-border)] shadow-card overflow-hidden">
+              <div className="px-6 py-4 border-b border-[var(--color-border)] flex items-center justify-between bg-[var(--color-surface-secondary)]/50">
+                <h2 className="text-sm font-bold text-[var(--color-text-primary)] uppercase tracking-wider">Your Events</h2>
+                <span className="text-xs font-bold text-[var(--color-text-secondary)] bg-white border border-[var(--color-border)] shadow-sm px-2.5 py-1 rounded-lg">{events.length} total</span>
+              </div>
+
+              {events.length === 0 ? (
+                <div className="text-center py-16 px-6">
+                  <div className="bg-[var(--color-surface-tertiary)] h-14 w-14 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-[var(--color-border)]">
+                    <Calendar className="h-6 w-6 text-[var(--color-text-tertiary)]" />
+                  </div>
+                  <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-1">No events yet</h3>
+                  <p className="text-sm text-[var(--color-text-secondary)] mb-6">Create your first event to start seeing analytics</p>
+                  <Link to="/create-event" className="inline-flex items-center gap-2 px-5 py-2.5 bg-black text-white rounded-xl font-semibold text-sm transition-all hover:shadow-lg hover:-translate-y-px">
+                    <Plus className="w-4 h-4" strokeWidth={3} /> Create Event
+                  </Link>
+                </div>
+              ) : (
+                <div className="divide-y divide-[var(--color-border)]">
+                  {events.map(event => (
+                    <div key={event._id} className="px-6 py-4 flex items-center gap-4 hover:bg-[var(--color-surface-secondary)] transition-colors group">
+                      {/* Thumbnail */}
+                      <div className="h-12 w-12 rounded-xl bg-[var(--color-surface-tertiary)] overflow-hidden flex-shrink-0 border border-[var(--color-border)]">
+                        {event.imageUrl ? (
+                          <img src={event.imageUrl} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[var(--color-text-tertiary)]"><Calendar className="w-5 h-5"/></div>
+                        )}
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex-grow min-w-0">
+                        <h3 className="font-bold text-sm text-[var(--color-text-primary)] truncate">{event.title}</h3>
+                        <div className="flex items-center gap-3 text-[11px] text-[var(--color-text-secondary)] mt-1 font-medium">
+                          <span className="flex items-center gap-1"><Calendar className="w-3 h-3 text-[var(--color-text-tertiary)]"/>{new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                          <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-[var(--color-text-tertiary)]"/>{event.time}</span>
+                          <span className="flex items-center gap-1"><MapPin className="w-3 h-3 text-[var(--color-text-tertiary)]"/>{event.location}</span>
+                        </div>
+                      </div>
+
+                      {/* Seats & Actions */}
+                      <div className="flex items-center gap-6 flex-shrink-0">
+                        <div className="text-right hidden sm:block">
+                          <p className="text-sm font-bold text-[var(--color-text-primary)] bg-[var(--color-surface-secondary)] px-2.5 py-1 rounded-lg border border-[var(--color-border)]">
+                            {event.availableSeats} <span className="text-[var(--color-text-tertiary)]">/ {event.totalSeats}</span>
+                          </p>
+                          <p className="text-[10px] uppercase font-bold text-[var(--color-text-tertiary)] tracking-wider mt-1 mr-1">Left</p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Link to={`/edit-event/${event._id}`} className="p-2.5 rounded-xl text-[var(--color-text-tertiary)] hover:text-indigo-600 hover:bg-indigo-50 transition-all opacity-0 group-hover:opacity-100" title="Edit">
+                            <Pencil className="w-4 h-4" />
+                          </Link>
+                          <Link to={`/events/${event._id}`} className="p-2.5 rounded-xl text-[var(--color-text-tertiary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary-muted)] transition-all">
+                            <ArrowUpRight className="w-4 h-4" />
+                          </Link>
+                          <button onClick={() => handleDelete(event._id)}
+                            className="p-2.5 rounded-xl text-[var(--color-text-tertiary)] hover:text-red-600 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100" title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
     </div>
   );

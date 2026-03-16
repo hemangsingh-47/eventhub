@@ -1,6 +1,6 @@
 import { useContext, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, Calendar, Menu, X, LayoutDashboard } from 'lucide-react';
+import { LogOut, Calendar, Menu, X, LayoutDashboard, Bookmark } from 'lucide-react';
 import AuthContext from '../../context/AuthContext';
 
 const Navbar = () => {
@@ -37,6 +37,11 @@ const Navbar = () => {
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-1">
             <NavLink to="/" active={isActive('/')}>Events</NavLink>
+            {user && (
+              <NavLink to="/bookmarks" active={isActive('/bookmarks')}>
+                <Bookmark className="w-3.5 h-3.5" />Saved
+              </NavLink>
+            )}
             {user?.role === 'organizer' && (
               <NavLink to="/dashboard" active={isActive('/dashboard')}>
                 <LayoutDashboard className="w-3.5 h-3.5" />Dashboard
@@ -87,6 +92,7 @@ const Navbar = () => {
         {mobileOpen && (
           <div className="md:hidden pb-4 pt-2 space-y-1 border-t border-[var(--color-border)] mt-2 animate-fade-in-up">
             <MobileLink to="/" onClick={() => setMobileOpen(false)}>Events</MobileLink>
+            {user && <MobileLink to="/bookmarks" onClick={() => setMobileOpen(false)}>Saved Events</MobileLink>}
             {user?.role === 'organizer' && <MobileLink to="/dashboard" onClick={() => setMobileOpen(false)}>Dashboard</MobileLink>}
             {!user ? (
               <>
