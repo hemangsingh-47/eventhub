@@ -1,9 +1,11 @@
 import { useState, useEffect, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { CalendarDays, Clock, MapPin, Users, ArrowLeft, Share2 } from 'lucide-react';
+import { CalendarDays, Clock, MapPin, Users, ArrowLeft, Share2, Star } from 'lucide-react';
 import AuthContext from '../context/AuthContext';
 import api from '../utils/api';
 import RSVPButton from '../components/events/RSVPButton';
+import EventComments from '../components/events/EventComments';
+import EventRating from '../components/events/EventRating';
 
 const EventDetailPage = () => {
   const { id } = useParams();
@@ -82,6 +84,12 @@ const EventDetailPage = () => {
             </div>
 
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-[var(--color-text-primary)] mb-4 leading-tight">{event.title}</h1>
+            
+            {/* Real-Time Rating */}
+            <div className="mb-6">
+              <EventRating eventId={id} user={user} />
+            </div>
+
             <p className="text-base text-[var(--color-text-secondary)] leading-relaxed mb-8">{event.description}</p>
 
             {/* Detail Cards */}
@@ -107,6 +115,9 @@ const EventDetailPage = () => {
                 </div>
               </div>
             )}
+
+            {/* Discussion Section */}
+            <EventComments eventId={id} user={user} />
           </div>
 
           {/* Sidebar */}

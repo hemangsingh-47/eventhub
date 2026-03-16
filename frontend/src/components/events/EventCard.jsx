@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Clock, CalendarDays, ArrowUpRight, Users } from 'lucide-react';
+import { MapPin, Clock, CalendarDays, ArrowUpRight, Users, Star } from 'lucide-react';
+import api from '../../utils/api';
 
 const categoryColors = {
   hackathon: { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200/50' },
@@ -14,6 +16,19 @@ const categoryColors = {
 };
 
 const EventCard = ({ event }) => {
+  const [ratingData, setRatingData] = useState({ average: 0, count: 0 });
+
+  useEffect(() => {
+    const fetchRating = async () => {
+      try {
+        const { data } = await api.get(`/api/ratings/${event._id}`);
+        setRatingData(data);
+      } catch (error) {
+        // Silent fail for feed
+      }
+    };
+    fetchRating();
+  }, [event._id]);
   const isFull = event.availableSeats === 0;
   const colors = categoryColors[event.category] || categoryColors.other;
   const seatPercent = ((event.totalSeats - event.availableSeats) / event.totalSeats) * 100;
@@ -54,6 +69,12 @@ const EventCard = ({ event }) => {
           <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider ${colors.bg} ${colors.text} border ${colors.border}`}>
             {event.category}
           </span>
+          {ratingData.count > 0 && (
+            <div className="flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-100">
+              <Star className="w-2.5 h-2.5 text-amber-500 fill-amber-500" />
+              <span className="text-[10px] font-black text-amber-700">{ratingData.average}</span>
+            </div>
+          )}
           {isFull && (
             <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider bg-red-50 text-red-600 border border-red-200/50">
               Sold Out
