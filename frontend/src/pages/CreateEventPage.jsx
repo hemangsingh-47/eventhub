@@ -1,6 +1,7 @@
-import { useState, useContext, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { CalendarPlus, Image, MapPin, Clock, Users, Tag, FileText, Loader2, ArrowLeft, CheckCircle, X } from 'lucide-react';
+import api from '../utils/api';
 
 const categories = [
   { value: 'hackathon', label: '💻 Hackathon' },
@@ -131,7 +132,7 @@ const CreateEventPage = () => {
                   onKeyDown={(e) => {
                     if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
                       e.preventDefault();
-                      const newTag = tagInput.trim().toLowerCase();
+                      const newTag = tagInput.trim();
                       if (!form.tags.includes(newTag)) {
                         setForm(prev => ({ ...prev, tags: [...prev.tags, newTag] }));
                       }
