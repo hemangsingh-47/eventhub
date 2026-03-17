@@ -15,8 +15,8 @@ const LeaderboardPage = () => {
       try {
         setLoading(true);
         const [boardRes, myRankRes] = await Promise.all([
-          api.get('/leaderboard?limit=20'),
-          user?.role === 'student' ? api.get('/leaderboard/me').catch(() => null) : Promise.resolve(null)
+          api.get('leaderboard?limit=20'),
+          user?.role === 'student' ? api.get('leaderboard/me').catch(() => null) : Promise.resolve(null)
         ]);
 
         setLeaderboard(boardRes.data);

@@ -1,12 +1,13 @@
 import { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { User, Mail, Lock, ShieldCheck, Loader2, Calendar } from 'lucide-react';
+import { User, Mail, Lock, ShieldCheck, Loader2, Calendar, Eye, EyeOff } from 'lucide-react';
 import AuthContext from '../context/AuthContext';
 
 const RegisterPage = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState('student');
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,7 +42,7 @@ const RegisterPage = () => {
             <span className="font-bold text-lg">Event<span className="text-[var(--color-primary)]">Hub</span></span>
           </Link>
           <h2 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">Create your account</h2>
-          <p className="text-sm text-[var(--color-text-secondary)] mt-1.5">Start discovering and organizing campus events</p>
+          <p className="text-sm text-[var(--color-text-secondary)] mt-1.5">Start discovering campus events</p>
         </div>
 
         <div className="bg-white rounded-2xl border border-[var(--color-border)] shadow-card p-8">
@@ -78,27 +79,20 @@ const RegisterPage = () => {
               <label className="text-sm font-semibold text-[var(--color-text-primary)]">Password</label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-[var(--color-text-tertiary)]" />
-                <input type="password" required placeholder="Min. 6 characters"
-                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-secondary)] focus:bg-white focus:border-[var(--color-primary)] focus:ring-2 focus:ring-indigo-500/10 text-sm font-medium text-[var(--color-text-primary)] outline-none transition-all placeholder:text-[var(--color-text-tertiary)] tracking-widest"
+                <input type={showPassword ? "text" : "password"} required placeholder="Min. 6 characters"
+                  className="w-full pl-11 pr-11 py-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-secondary)] focus:bg-white focus:border-[var(--color-primary)] focus:ring-2 focus:ring-indigo-500/10 text-sm font-medium text-[var(--color-text-primary)] outline-none transition-all placeholder:text-[var(--color-text-tertiary)] tracking-widest"
                   value={password} onChange={(e) => setPassword(e.target.value)}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
+                </button>
               </div>
             </div>
 
-            {/* Role Selector — Stripe-style toggle */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-semibold text-[var(--color-text-primary)]">I want to</label>
-              <div className="grid grid-cols-2 gap-2 p-1 bg-[var(--color-surface-tertiary)] rounded-xl border border-[var(--color-border)]">
-                <button type="button" onClick={() => setRole('student')}
-                  className={`py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${role === 'student' ? 'bg-white text-[var(--color-text-primary)] shadow-sm border border-[var(--color-border)]' : 'text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)]'}`}>
-                  🎓 Attend Events
-                </button>
-                <button type="button" onClick={() => setRole('organizer')}
-                  className={`py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${role === 'organizer' ? 'bg-white text-[var(--color-text-primary)] shadow-sm border border-[var(--color-border)]' : 'text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)]'}`}>
-                  📋 Organize Events
-                </button>
-              </div>
-            </div>
 
             <button type="submit" disabled={isSubmitting}
               className="w-full flex items-center justify-center gap-2 py-3 mt-2 rounded-xl text-sm font-bold text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] hover:shadow-lg hover:shadow-indigo-500/25 hover:-translate-y-px focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] transition-all duration-300 disabled:opacity-60"

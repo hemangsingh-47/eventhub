@@ -15,6 +15,11 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
+    // Restrict organizer registration
+    if (role === 'organizer') {
+      return res.status(403).json({ message: 'Organizer registration is restricted.' });
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -47,6 +52,32 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // Check for predefined admin credentials
+    if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
+      let admin = await User.findOne({ email });
+      
+      if (!admin) {
+        // Create the admin user if they don't exist
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+        
+        admin = await User.create({
+          name: 'EventHub Admin',
+          email: email,
+          password: hashedPassword,
+          role: 'organizer',
+        });
+      }
+
+      return res.json({
+        _id: admin._id,
+        name: admin.name,
+        email: admin.email,
+        role: admin.role,
+        token: generateToken(admin._id),
+      });
+    }
 
     const user = await User.findOne({ email });
 

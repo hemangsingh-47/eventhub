@@ -47,7 +47,7 @@ const EventComments = ({ eventId, user }) => {
 
     setLoading(true);
     try {
-      const { data } = await api.post('/comments', {
+      const { data } = await api.post('comments', {
         eventId,
         text,
         parentId: replyTo?._id || null

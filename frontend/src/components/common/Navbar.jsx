@@ -61,12 +61,16 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-3">
             {user ? (
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-[var(--color-surface-tertiary)] border border-[var(--color-border)]">
-                  <div className="h-7 w-7 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-light)] flex items-center justify-center text-white font-bold text-xs shadow-inner">
-                    {user.name.charAt(0).toUpperCase()}
+                <Link to="/profile" className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-[var(--color-surface-tertiary)] border border-[var(--color-border)] hover:border-[var(--color-primary)] transition-all group cursor-pointer">
+                  <div className="h-7 w-7 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-light)] flex items-center justify-center text-white font-bold text-xs shadow-inner group-hover:scale-105 transition-transform overflow-hidden">
+                    {user.profileImage ? (
+                      <img src={user.profileImage} alt={user.name} className="w-full h-full object-cover" />
+                    ) : (
+                      user.name.charAt(0).toUpperCase()
+                    )}
                   </div>
-                  <span className="text-sm font-semibold text-[var(--color-text-primary)]">{user.name}</span>
-                </div>
+                  <span className="text-sm font-semibold text-[var(--color-text-primary)] group-hover:text-[var(--color-primary)] transition-colors">{user.name}</span>
+                </Link>
                 <NotificationBell />
                 <button
                   onClick={handleLogout}

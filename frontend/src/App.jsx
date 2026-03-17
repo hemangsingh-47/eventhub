@@ -14,6 +14,7 @@ import LeaderboardPage from './pages/LeaderboardPage';
 import CreateEventPage from './pages/CreateEventPage';
 import EditEventPage from './pages/EditEventPage';
 import EventDetailPage from './pages/EventDetailPage';
+import ProfilePage from './pages/ProfilePage';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -45,6 +46,9 @@ function App() {
                   <ProtectedRoute role="organizer"><EditEventPage /></ProtectedRoute>
                 } />
                 <Route path="/events/:id" element={<EventDetailPage />} />
+                <Route path="/profile" element={
+                  <ProtectedRoute><ProfilePage /></ProtectedRoute>
+                } />
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </main>

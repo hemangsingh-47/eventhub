@@ -1,8 +1,8 @@
+require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const path = require('path');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { Server } = require('socket.io');
@@ -21,7 +21,6 @@ const notificationRoutes = require('./routes/notificationRoutes');
 require('./jobs/reminderCron'); // Start cron jobs
 const { setupSocketHandlers } = require('./socket/handlers');
 
-dotenv.config();
 connectDB();
 
 const app = express();
@@ -75,7 +74,7 @@ app.use('/api/notifications', notificationRoutes);
 setupSocketHandlers(io);
 
 // 404 catch-all for unknown API routes
-app.all('/api/{*path}', (req, res) => {
+app.all(/\/api\/.*/, (req, res) => {
   res.status(404).json({ message: `Route not found: ${req.method} ${req.originalUrl}` });
 });
 

@@ -1,11 +1,12 @@
 import { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, Loader2, Calendar } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Loader2, Calendar, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import AuthContext from '../context/AuthContext';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useContext(AuthContext);
@@ -74,10 +75,17 @@ const LoginPage = () => {
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-[var(--color-text-tertiary)]" />
                 <input
-                  type="password" required placeholder="••••••••"
-                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-secondary)] focus:bg-white focus:border-[var(--color-primary)] focus:ring-2 focus:ring-indigo-500/10 text-sm font-medium text-[var(--color-text-primary)] outline-none transition-all placeholder:text-[var(--color-text-tertiary)] tracking-widest"
+                  type={showPassword ? "text" : "password"} required placeholder="••••••••"
+                  className="w-full pl-11 pr-11 py-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-secondary)] focus:bg-white focus:border-[var(--color-primary)] focus:ring-2 focus:ring-indigo-500/10 text-sm font-medium text-[var(--color-text-primary)] outline-none transition-all placeholder:text-[var(--color-text-tertiary)] tracking-widest"
                   value={password} onChange={(e) => setPassword(e.target.value)}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
+                </button>
               </div>
             </div>
 
@@ -102,6 +110,29 @@ const LoginPage = () => {
               Create one
             </Link>
           </p>
+
+          {/* Admin Access Section */}
+          <div className="mt-8 pt-6 border-t border-dashed border-[var(--color-border)]">
+            <div className="flex flex-col items-center gap-3">
+              <div className="px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-[10px] font-bold uppercase tracking-wider border border-amber-100/50">
+                Admin Access Only
+              </div>
+              <p className="text-[11px] text-center text-[var(--color-text-tertiary)] max-w-[200px] leading-relaxed">
+                Use authorized credentials to manage events and platform settings.
+              </p>
+              <button 
+                type="button"
+                onClick={() => {
+                  setEmail('admin@eventhub.com');
+                  setPassword('admin123');
+                }}
+                className="text-xs font-bold text-[var(--color-primary)] hover:underline flex items-center gap-1.5"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                Quick Admin Credentials
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

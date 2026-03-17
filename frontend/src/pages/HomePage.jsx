@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import api from '../utils/api';
 import AuthContext from '../context/AuthContext';
 import EventCard from '../components/events/EventCard';
-import { Search, Sparkles, ArrowRight, Calendar, Users, Zap, Brain } from 'lucide-react';
+import { Search, Sparkles, ArrowRight, Calendar, Users, Zap, X, Info, Loader2 } from 'lucide-react';
 
 const HomePage = () => {
   const { user } = useContext(AuthContext);
@@ -12,11 +12,6 @@ const HomePage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-
-  // AI Recommendations state
-  const [recommendations, setRecommendations] = useState([]);
-  const [recLoading, setRecLoading] = useState(false);
-  const [recStrategy, setRecStrategy] = useState('');
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -30,7 +25,7 @@ const HomePage = () => {
     const fetchEvents = async () => {
       try {
         setLoading(true);
-        const { data } = await api.get(`/events?page=${page}&limit=6${debouncedSearch ? `&q=${debouncedSearch}` : ''}`);
+        const { data } = await api.get(`events?page=${page}&limit=6${debouncedSearch ? `&q=${debouncedSearch}` : ''}`);
         setEvents(data.events);
         setTotalPages(data.pages);
       } catch (error) {
@@ -42,23 +37,6 @@ const HomePage = () => {
     fetchEvents();
   }, [page, debouncedSearch]);
 
-  // Fetch AI recommendations for logged-in users
-  useEffect(() => {
-    const fetchRecommendations = async () => {
-      if (!user) return;
-      try {
-        setRecLoading(true);
-        const { data } = await api.get('/recommendations');
-        setRecommendations(data.recommendations || []);
-        setRecStrategy(data.strategy || '');
-      } catch (error) {
-        console.error("Error fetching recommendations", error);
-      } finally {
-        setRecLoading(false);
-      }
-    };
-    fetchRecommendations();
-  }, [user]);
 
   return (
     <div className="w-full relative overflow-hidden">
@@ -100,9 +78,16 @@ const HomePage = () => {
                 placeholder="Search events, workshops, hackathons..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && setDebouncedSearch(searchTerm)}
               />
-              <kbd className="absolute right-5 hidden sm:inline-flex items-center gap-0.5 border border-[var(--color-border)] rounded-lg px-2 py-1 text-[11px] font-medium text-[var(--color-text-tertiary)] bg-[var(--color-surface-tertiary)]">⌘K</kbd>
+              <button 
+                onClick={() => setDebouncedSearch(searchTerm)}
+                className="absolute right-3 p-2 bg-[var(--color-primary)] text-white rounded-xl hover:bg-[var(--color-primary-hover)] transition-colors"
+              >
+                <Search className="w-4 h-4" />
+              </button>
             </div>
+
           </div>
 
           {/* Stats Row */}
@@ -115,46 +100,6 @@ const HomePage = () => {
           </div>
         </div>
 
-        {/* ═══════ AI RECOMMENDED FOR YOU ═══════ */}
-        {user && !debouncedSearch && recommendations.length > 0 && (
-          <div className="mb-16 animate-fade-in-up">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-violet-500/10 to-indigo-500/10 border border-violet-200/50">
-                <Brain className="w-5 h-5 text-violet-600" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold tracking-tight text-[var(--color-text-primary)] flex items-center gap-2">
-                  Recommended For You
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-violet-500/10 to-indigo-500/10 border border-violet-200/50 text-[10px] font-bold text-violet-600 uppercase tracking-wider">
-                    <Sparkles className="w-3 h-3" /> AI
-                  </span>
-                </h2>
-                <p className="text-xs text-[var(--color-text-tertiary)] font-medium mt-0.5">
-                  {recStrategy === 'ai-cosine-similarity' 
-                    ? 'Personalized picks based on your RSVP history' 
-                    : 'Popular events on campus right now'}
-                </p>
-              </div>
-            </div>
-
-            {recLoading ? (
-              <div className="flex justify-center py-16">
-                <div className="relative">
-                  <div className="h-8 w-8 border-2 border-violet-100 rounded-full"></div>
-                  <div className="absolute top-0 h-8 w-8 border-2 border-transparent border-t-violet-500 rounded-full animate-spin"></div>
-                </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {recommendations.slice(0, 3).map((event, i) => (
-                  <div key={event._id} className="animate-fade-in-up" style={{animationDelay: `${i * 0.1}s`}}>
-                    <EventCard event={event} />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Events Feed */}
         <div className="mb-16">

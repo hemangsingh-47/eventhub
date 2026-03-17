@@ -7,6 +7,8 @@ import StatsCards from '../components/dashboard/StatsCards';
 import RSVPChart from '../components/dashboard/RSVPChart';
 import SeatUtilization from '../components/dashboard/SeatUtilization';
 
+import { FileDown, Download, Mail } from 'lucide-react';
+
 const DashboardPage = () => {
   const { user } = useContext(AuthContext);
   const [events, setEvents] = useState([]);
@@ -15,15 +17,16 @@ const DashboardPage = () => {
   const [seatUtil, setSeatUtil] = useState([]);
   const [loading, setLoading] = useState(true);
 
+
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
       // Fetch stats and events in parallel
       const [eventsRes, statsRes, trendRes, utilRes] = await Promise.all([
-        api.get('/events'),
-        api.get('/analytics/overview'),
-        api.get('/analytics/rsvp-trend'),
-        api.get('/analytics/seat-util')
+        api.get('events'),
+        api.get('analytics/overview'),
+        api.get('analytics/rsvp-trend'),
+        api.get('analytics/seat-util')
       ]);
 
       const myEvents = eventsRes.data.events.filter(e => e.organizerId?._id === user?._id || e.organizerId === user?._id);
@@ -46,7 +49,7 @@ const DashboardPage = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this event?')) return;
     try {
-      await api.delete(`/events/${id}`);
+      await api.delete(`events/${id}`);
       setEvents(prev => prev.filter(e => e._id !== id));
       // Refresh stats after deletion
       fetchDashboardData();
@@ -189,6 +192,7 @@ const DashboardPage = () => {
           </>
         )}
       </div>
+
     </div>
   );
 };

@@ -15,7 +15,7 @@ const BookmarksPage = () => {
       if (!user) return;
       try {
         setLoading(true);
-        const { data } = await api.get('/bookmarks');
+        const { data } = await api.get('bookmarks');
         setBookmarkedEvents(data);
       } catch (error) {
         console.error('Failed to fetch bookmarks', error);

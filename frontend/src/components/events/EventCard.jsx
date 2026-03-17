@@ -60,6 +60,7 @@ const EventCard = ({ event }) => {
         <div className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-xl opacity-0 -translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-sm">
           <ArrowUpRight className="h-4 w-4 text-[var(--color-text-primary)]" strokeWidth={2.5} />
         </div>
+
       </div>
       
       {/* Content */}

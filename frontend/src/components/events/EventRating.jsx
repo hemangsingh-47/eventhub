@@ -43,7 +43,7 @@ const EventRating = ({ eventId, user }) => {
     if (!user) return alert('Please log in to rate this event.');
     setLoading(true);
     try {
-      await api.post('/ratings', { eventId, value });
+      await api.post('ratings', { eventId, value });
       setRating(value);
     } catch (error) {
       alert('Failed to submit rating');

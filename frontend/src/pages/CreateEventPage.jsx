@@ -1,8 +1,6 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { CalendarPlus, Image, MapPin, Clock, Users, Tag, FileText, Loader2, ArrowLeft, CheckCircle, X } from 'lucide-react';
-import AuthContext from '../context/AuthContext';
-import api from '../utils/api';
 
 const categories = [
   { value: 'hackathon', label: '💻 Hackathon' },
@@ -33,7 +31,7 @@ const CreateEventPage = () => {
     e.preventDefault();
     setIsSubmitting(true); setError(null);
     try {
-      await api.post('/events', { ...form, totalSeats: parseInt(form.totalSeats), tags: form.tags });
+      await api.post('events', { ...form, totalSeats: parseInt(form.totalSeats), tags: form.tags });
       setSuccess(true);
       setTimeout(() => navigate('/dashboard'), 1500);
     } catch (err) {
@@ -114,7 +112,7 @@ const CreateEventPage = () => {
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-[var(--color-text-primary)] flex items-center gap-1.5">
                 <Tag className="w-3.5 h-3.5 text-[var(--color-text-tertiary)]" />
-                Tags <span className="text-xs font-normal text-[var(--color-text-tertiary)]">(powers AI recommendations)</span>
+                Tags <span className="text-xs font-normal text-[var(--color-text-tertiary)]">(powers recommendations)</span>
               </label>
               <div className="flex flex-wrap gap-2 p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-secondary)] focus-within:bg-white focus-within:border-[var(--color-primary)] focus-within:ring-2 focus-within:ring-indigo-500/10 transition-all min-h-[48px]">
                 {form.tags.map((tag, i) => (
@@ -144,6 +142,7 @@ const CreateEventPage = () => {
                 />
               </div>
             </div>
+
 
             <button type="submit" disabled={isSubmitting}
               className="w-full flex items-center justify-center gap-2 py-3 mt-2 rounded-xl text-sm font-bold text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] hover:shadow-lg hover:shadow-indigo-500/25 hover:-translate-y-px focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] transition-all duration-300 disabled:opacity-60"

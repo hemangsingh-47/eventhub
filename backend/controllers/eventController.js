@@ -169,23 +169,6 @@ const rsvpEvent = async (req, res) => {
     event.availableSeats -= 1;
     await event.save();
 
-    // --- AI: Update user preference vector ---
-    try {
-      const user = await User.findById(req.user._id);
-      const tagsToLearn = [event.category, ...(event.tags || [])];
-      tagsToLearn.forEach(tag => {
-        const normalized = tag.toLowerCase().trim();
-        if (normalized) {
-          const current = user.preferences.get(normalized) || 0;
-          user.preferences.set(normalized, current + 1);
-        }
-      });
-      await user.save();
-    } catch (prefError) {
-      console.error('Failed to update user preferences:', prefError);
-      // Non-blocking — RSVP still succeeds even if preference update fails
-    }
-
     // --- Socket.io: Broadcast real-time RSVP update ---
     if (req.io) {
       req.io.to(`event:${event._id}`).emit('rsvp:update', {

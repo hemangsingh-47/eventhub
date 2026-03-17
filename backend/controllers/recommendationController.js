@@ -39,7 +39,9 @@ const buildEventVector = (event) => {
 const getRecommendations = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
-    const userPrefs = user.preferences ? Object.fromEntries(user.preferences) : {};
+    const userPrefs = user.preferences && user.preferences.size > 0 
+      ? Object.fromEntries(user.preferences.entries()) 
+      : {};
 
     // If user has no preferences yet (cold start), return popular upcoming events
     if (Object.keys(userPrefs).length === 0) {
@@ -88,7 +90,7 @@ const getRecommendations = async (req, res) => {
 
     res.json({
       recommendations,
-      strategy: 'ai-cosine-similarity',
+      strategy: 'content-matching',
       message: 'Personalized recommendations based on your interests'
     });
   } catch (error) {

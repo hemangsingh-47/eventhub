@@ -37,7 +37,7 @@ export const subscribeToPushNotifications = async () => {
     }
 
     // 3. Get VAPID public key from backend
-    const { data: { publicKey } } = await api.get('/notifications/vapid-public-key');
+    const { data: { publicKey } } = await api.get('notifications/vapid-public-key');
     if (!publicKey) {
       throw new Error('VAPID public key missing from backend.');
     }
@@ -52,7 +52,7 @@ export const subscribeToPushNotifications = async () => {
     console.log('Push Subscription Object:', subscription);
 
     // 5. Send subscription to our backend
-    await api.post('/notifications/subscribe', {
+    await api.post('notifications/subscribe', {
       subscription: subscription.toJSON()
     });
 
@@ -70,7 +70,7 @@ export const unsubscribeFromPushNotifications = async () => {
     
     if (subscription) {
       // Inform backend first
-      await api.post('/notifications/unsubscribe', {
+      await api.post('notifications/unsubscribe', {
         endpoint: subscription.endpoint
       });
       // Then unsubscribe locally

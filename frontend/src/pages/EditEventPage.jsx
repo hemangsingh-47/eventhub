@@ -150,7 +150,7 @@ const EditEventPage = () => {
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-[var(--color-text-primary)] flex items-center gap-1.5">
                 <Tag className="w-3.5 h-3.5 text-[var(--color-text-tertiary)]" />
-                Tags <span className="text-xs font-normal text-[var(--color-text-tertiary)]">(powers AI recommendations)</span>
+                Tags <span className="text-xs font-normal text-[var(--color-text-tertiary)]">(powers recommendations)</span>
               </label>
               <div className="flex flex-wrap gap-2 p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-secondary)] focus-within:bg-white focus-within:border-[var(--color-primary)] focus-within:ring-2 focus-within:ring-indigo-500/10 transition-all min-h-[48px]">
                 {form.tags.map((tag, i) => (

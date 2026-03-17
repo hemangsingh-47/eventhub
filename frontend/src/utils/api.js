@@ -6,10 +6,11 @@ const getBaseURL = () => {
   // If no env var, use relative '/api' (Works for Unified Deploy)
   if (!envUrl) return '/api';
   
-  // If env var exists, make sure it ends with /api
+  // If env var exists, make sure it ends with /api/
   // We trim trailing slashes first to be safe
   const baseUrl = envUrl.replace(/\/$/, '');
-  return baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
+  const finalUrl = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
+  return `${finalUrl}/`;
 };
 
 const api = axios.create({

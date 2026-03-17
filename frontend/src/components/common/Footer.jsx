@@ -20,7 +20,7 @@ const Footer = () => {
               </span>
             </Link>
             <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed max-w-sm">
-              Your one-stop platform for discovering, organizing, and managing campus events. Powered by AI recommendations.
+              Your one-stop platform for discovering, organizing, and managing campus events. Personalized for your campus life.
             </p>
           </div>
 

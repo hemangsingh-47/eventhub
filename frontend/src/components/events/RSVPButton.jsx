@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Ticket, CheckCircle, Loader2 } from 'lucide-react';
 import socket from '../../utils/socket';
+import api from '../../utils/api';
 import { useToast } from '../common/Toast';
 
 const RSVPButton = ({ event, user, onRsvpSuccess }) => {
@@ -53,25 +54,13 @@ const RSVPButton = ({ event, user, onRsvpSuccess }) => {
     }
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/events/${event._id}/rsvp`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setRsvpd(true);
-        setAvailableSeats(data.availableSeats);
-        toast('You\'re registered! See you there 🎉', 'success');
-        if (onRsvpSuccess) onRsvpSuccess(data);
-      } else {
-        toast(data.message || 'RSVP failed.', 'error');
-      }
+      const { data } = await api.post(`events/${event._id}/rsvp`);
+      setRsvpd(true);
+      setAvailableSeats(data.availableSeats);
+      toast('You\'re registered! See you there 🎉', 'success');
+      if (onRsvpSuccess) onRsvpSuccess(data);
     } catch (err) {
-      toast('RSVP failed. Please try again.', 'error');
+      toast(err.response?.data?.message || 'RSVP failed. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
