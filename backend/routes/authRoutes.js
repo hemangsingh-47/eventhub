@@ -8,6 +8,17 @@ const User = require('../models/User');
 router.post('/register', registerRules, registerUser);
 router.post('/login', loginRules, loginUser);
 
+// Public Profile route
+router.get('/profile/:id', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('name email role points badges profileImage');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Profile route
 router.get('/profile', protect, async (req, res) => {
   res.json({

@@ -111,28 +111,6 @@ const LoginPage = () => {
             </Link>
           </p>
 
-          {/* Admin Access Section */}
-          <div className="mt-8 pt-6 border-t border-dashed border-[var(--color-border)]">
-            <div className="flex flex-col items-center gap-3">
-              <div className="px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-[10px] font-bold uppercase tracking-wider border border-amber-100/50">
-                Admin Access Only
-              </div>
-              <p className="text-[11px] text-center text-[var(--color-text-tertiary)] max-w-[200px] leading-relaxed">
-                Use authorized credentials to manage events and platform settings.
-              </p>
-              <button 
-                type="button"
-                onClick={() => {
-                  setEmail('admin@eventhub.com');
-                  setPassword('admin123');
-                }}
-                className="text-xs font-bold text-[var(--color-primary)] hover:underline flex items-center gap-1.5"
-              >
-                <ShieldCheck className="w-3.5 h-3.5" />
-                Quick Admin Credentials
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

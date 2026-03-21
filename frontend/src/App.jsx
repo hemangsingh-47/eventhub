@@ -3,6 +3,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './components/common/Toast';
 import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
+import Chatbot from './components/common/Chatbot';
 import ScrollToTop from './components/common/ScrollToTop';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import HomePage from './pages/HomePage';
@@ -14,7 +15,9 @@ import LeaderboardPage from './pages/LeaderboardPage';
 import CreateEventPage from './pages/CreateEventPage';
 import EditEventPage from './pages/EditEventPage';
 import EventDetailPage from './pages/EventDetailPage';
+import MyTicketsPage from './pages/MyTicketsPage';
 import ProfilePage from './pages/ProfilePage';
+import PublicProfilePage from './pages/PublicProfilePage';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -34,7 +37,7 @@ function App() {
                   <ProtectedRoute><BookmarksPage /></ProtectedRoute>
                 } />
                 <Route path="/leaderboard" element={
-                  <ProtectedRoute role="student"><LeaderboardPage /></ProtectedRoute>
+                  <ProtectedRoute><LeaderboardPage /></ProtectedRoute>
                 } />
                 <Route path="/dashboard" element={
                   <ProtectedRoute role="organizer"><DashboardPage /></ProtectedRoute>
@@ -46,13 +49,20 @@ function App() {
                   <ProtectedRoute role="organizer"><EditEventPage /></ProtectedRoute>
                 } />
                 <Route path="/events/:id" element={<EventDetailPage />} />
+                <Route path="/my-tickets" element={
+                  <ProtectedRoute><MyTicketsPage /></ProtectedRoute>
+                } />
                 <Route path="/profile" element={
                   <ProtectedRoute><ProfilePage /></ProtectedRoute>
+                } />
+                <Route path="/profile/:id" element={
+                  <ProtectedRoute><PublicProfilePage /></ProtectedRoute>
                 } />
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </main>
             <Footer />
+            <Chatbot />
           </div>
         </ToastProvider>
       </AuthProvider>

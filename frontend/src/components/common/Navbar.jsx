@@ -1,6 +1,6 @@
 import { useContext, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, Calendar, Menu, X, LayoutDashboard, Bookmark, Trophy } from 'lucide-react';
+import { LogOut, Calendar, Menu, X, LayoutDashboard, Bookmark, Trophy, Ticket } from 'lucide-react';
 import AuthContext from '../../context/AuthContext';
 import NotificationBell from './NotificationBell';
 
@@ -40,14 +40,15 @@ const Navbar = () => {
             <NavLink to="/" active={isActive('/')}>Events</NavLink>
             {user && (
               <>
+                <NavLink to="/my-tickets" active={isActive('/my-tickets')}>
+                  <Ticket className="w-3.5 h-3.5" />My Tickets
+                </NavLink>
                 <NavLink to="/bookmarks" active={isActive('/bookmarks')}>
                   <Bookmark className="w-3.5 h-3.5" />Saved
                 </NavLink>
-                {user.role === 'student' && (
-                  <NavLink to="/leaderboard" active={isActive('/leaderboard')}>
-                    <Trophy className="w-3.5 h-3.5" />Ranks
-                  </NavLink>
-                )}
+                <NavLink to="/leaderboard" active={isActive('/leaderboard')}>
+                  <Trophy className="w-3.5 h-3.5" />Ranks
+                </NavLink>
               </>
             )}
             {user?.role === 'organizer' && (
@@ -107,10 +108,9 @@ const Navbar = () => {
             <MobileLink to="/" onClick={() => setMobileOpen(false)}>Events</MobileLink>
             {user && (
               <>
+                <MobileLink to="/my-tickets" onClick={() => setMobileOpen(false)}>My Tickets</MobileLink>
                 <MobileLink to="/bookmarks" onClick={() => setMobileOpen(false)}>Saved Events</MobileLink>
-                {user.role === 'student' && (
-                  <MobileLink to="/leaderboard" onClick={() => setMobileOpen(false)}>Leaderboard</MobileLink>
-                )}
+                <MobileLink to="/leaderboard" onClick={() => setMobileOpen(false)}>Leaderboard</MobileLink>
               </>
             )}
             {user?.role === 'organizer' && <MobileLink to="/dashboard" onClick={() => setMobileOpen(false)}>Dashboard</MobileLink>}

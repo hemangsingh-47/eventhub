@@ -26,10 +26,18 @@ const StatsCards = ({ stats }) => {
       bg: 'bg-violet-50', 
       change: 'Across all events' 
     },
+    { 
+      label: 'Ticket Revenue', 
+      value: `$${(stats.totalRevenue || 0).toFixed(2)}`, 
+      icon: <div className="w-5 h-5 flex items-center justify-center font-bold font-mono">$</div>, 
+      color: 'text-amber-600', 
+      bg: 'bg-amber-50', 
+      change: 'Lifetime sales' 
+    },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
       {cards.map((stat, i) => (
         <div key={i} className="bg-white rounded-2xl border border-[var(--color-border)] p-5 hover:shadow-card-hover transition-all duration-300 group">
           <div className="flex items-center justify-between mb-3">

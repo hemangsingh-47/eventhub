@@ -13,6 +13,8 @@ const eventSchema = new mongoose.Schema({
   },
   totalSeats: { type: Number, required: true },
   availableSeats: { type: Number, required: true },
+  price: { type: Number, default: 0 },
+  isPaid: { type: Boolean, default: false },
   organizerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   attendees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   tags: [{ type: String }],

@@ -1,7 +1,11 @@
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 const Event = require('../models/Event');
 const User = require('../models/User');
 
-// ——— Cosine Similarity Utility ———
+// Initialize Gemini
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+// ——— Cosine Similarity Utility (Preserved for initial filtering) ———
 const cosineSimilarity = (vecA, vecB) => {
   const allKeys = new Set([...Object.keys(vecA), ...Object.keys(vecB)]);
   let dotProduct = 0, magA = 0, magB = 0;
@@ -18,12 +22,9 @@ const cosineSimilarity = (vecA, vecB) => {
   return magnitude === 0 ? 0 : dotProduct / magnitude;
 };
 
-// Build a vector from an event's category + tags
 const buildEventVector = (event) => {
   const vec = {};
-  // Category gets a higher weight
   if (event.category) vec[event.category] = 2;
-  // Each tag contributes
   if (event.tags && event.tags.length > 0) {
     event.tags.forEach(tag => {
       const normalized = tag.toLowerCase().trim();
@@ -43,9 +44,13 @@ const getRecommendations = async (req, res) => {
       ? Object.fromEntries(user.preferences.entries()) 
       : {};
 
-    // If user has no preferences yet (cold start), return popular upcoming events
+    const attendedEvents = await Event.find({ attendees: req.user._id }).select('_id').lean();
+    const attendedIds = attendedEvents.map(e => e._id.toString());
+
+    // 1. Cold Start Check
     if (Object.keys(userPrefs).length === 0) {
       const popular = await Event.find({
+        _id: { $nin: attendedIds },
         date: { $gte: new Date() },
         availableSeats: { $gt: 0 }
       })
@@ -56,18 +61,12 @@ const getRecommendations = async (req, res) => {
 
       return res.json({
         recommendations: popular,
-        strategy: 'popular',
-        message: 'Showing popular events. RSVP to events to get personalized recommendations!'
+        strategy: 'popular-cold-start',
+        message: 'Explore trending events to get personalized recommendations!'
       });
     }
 
-    // Get events the user has already RSVP'd to
-    const attendedEvents = await Event.find({
-      attendees: req.user._id
-    }).select('_id').lean();
-    const attendedIds = attendedEvents.map(e => e._id.toString());
-
-    // Get all upcoming events the user hasn't RSVP'd to
+    // 2. Initial Candidate Filtering (Cosine Similarity)
     const upcoming = await Event.find({
       _id: { $nin: attendedIds },
       date: { $gte: new Date() },
@@ -76,23 +75,63 @@ const getRecommendations = async (req, res) => {
       .populate('organizerId', 'name email')
       .lean();
 
-    // Score each event via cosine similarity against user preference vector
-    const scored = upcoming.map(event => {
+    const candidates = upcoming.map(event => {
       const eventVec = buildEventVector(event);
       const score = cosineSimilarity(userPrefs, eventVec);
-      return { ...event, _score: score };
-    });
+      return { ...event, _initialScore: score };
+    })
+    .sort((a, b) => b._initialScore - a._initialScore)
+    .slice(0, 15); // Send top 15 to Gemini for refined ranking
 
-    // Sort by score descending, take top 6
-    const recommendations = scored
-      .sort((a, b) => b._score - a._score)
-      .slice(0, 6);
+    // 3. Refined Semantic Ranking with Gemini
+    try {
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      
+      const userInterestDesc = Object.entries(userPrefs)
+        .map(([tag, score]) => `${tag} (weight: ${score})`)
+        .join(', ');
 
+      const eventListStr = candidates.map((e, i) => (
+        `ID: ${i}, Title: ${e.title}, Category: ${e.category}, Description: ${e.description.substring(0, 100)}...`
+      )).join('\n');
+
+      const prompt = `Rank the FOLLOWING EVENTS based on a user's interests: [${userInterestDesc}].
+      Pick the top 6 most relevant events.
+      
+      Events:
+      ${eventListStr}
+      
+      Response Format: JSON array of indices only, e.g. [5, 2, 0, 8, 1, 3]`;
+
+      const result = await model.generateContent(prompt);
+      const responseText = result.response.text();
+      const match = responseText.match(/\[.*\]/);
+      
+      if (match) {
+        const topIndices = JSON.parse(match[0]);
+        const finalRecommendations = topIndices
+          .map(idx => candidates[idx])
+          .filter(Boolean);
+
+        return res.json({
+          recommendations: finalRecommendations,
+          strategy: 'gemini-refined',
+          message: 'Top picks analyzed by EventHub AI based on your unique interests'
+        });
+      }
+    } catch (aiError) {
+      console.error('Gemini Recommendation Refinement Failed:', aiError);
+      // Fallback to pure cosine similarity if AI fails
+    }
+
+    // 4. Fallback Logic
+    const fallbackRecs = candidates.slice(0, 6);
     res.json({
-      recommendations,
-      strategy: 'content-matching',
-      message: 'Personalized recommendations based on your interests'
+      recommendations: fallbackRecs,
+      strategy: 'content-matching-fallback',
+      message: 'Personalized recommendations based on your activity'
     });
+
   } catch (error) {
     console.error('Recommendation error:', error);
     res.status(500).json({ message: error.message });

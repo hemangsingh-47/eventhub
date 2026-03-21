@@ -54,13 +54,20 @@ const RSVPButton = ({ event, user, onRsvpSuccess }) => {
     }
     setLoading(true);
     try {
-      const { data } = await api.post(`events/${event._id}/rsvp`);
-      setRsvpd(true);
-      setAvailableSeats(data.availableSeats);
-      toast('You\'re registered! See you there 🎉', 'success');
-      if (onRsvpSuccess) onRsvpSuccess(data);
+      if (event.isPaid) {
+        // Stripe Checkout Flow
+        const { data } = await api.post('tickets/create-checkout-session', { eventId: event._id });
+        window.location.href = data.url; // Redirect to Stripe
+      } else {
+        // Free RSVP Flow
+        const { data } = await api.post(`events/${event._id}/rsvp`);
+        setRsvpd(true);
+        setAvailableSeats(data.availableSeats);
+        toast('You\'re registered! See you there 🎉', 'success');
+        if (onRsvpSuccess) onRsvpSuccess(data);
+      }
     } catch (err) {
-      toast(err.response?.data?.message || 'RSVP failed. Please try again.', 'error');
+       toast(err.response?.data?.message || 'Transaction failed. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
@@ -69,6 +76,15 @@ const RSVPButton = ({ event, user, onRsvpSuccess }) => {
   const isFull = availableSeats <= 0;
   const seatPercent = totalSeats > 0 ? ((totalSeats - availableSeats) / totalSeats) * 100 : 0;
   const attendeeCount = totalSeats - availableSeats;
+
+  // Determine button text based on event type
+  const getButtonText = () => {
+    if (isFull) return 'Sold Out';
+    if (!user) return 'Log in to RSVP';
+    if (loading) return event.isPaid ? 'Redirecting...' : 'Registering...';
+    if (event.isPaid) return `Buy Ticket — $${event.price.toFixed(2)}`;
+    return 'RSVP — Free';
+  };
 
   return (
     <div>
@@ -113,7 +129,7 @@ const RSVPButton = ({ event, user, onRsvpSuccess }) => {
           ) : (
             <Ticket className="w-4 h-4" />
           )}
-          {isFull ? 'Sold Out' : !user ? 'Log in to RSVP' : loading ? 'Registering...' : 'RSVP — Free'}
+          {getButtonText()}
         </button>
       )}
     </div>

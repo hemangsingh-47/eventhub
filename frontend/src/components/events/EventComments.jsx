@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Star, MessageSquare, Send, Trash2, Reply, Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import api from '../../utils/api';
 import socket from '../../utils/socket';
 
@@ -104,6 +105,14 @@ const EventComments = ({ eventId, user }) => {
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  if (!loading && text.trim()) {
+                    handleSubmit(e);
+                  }
+                }
+              }}
               placeholder={replyTo ? "Write a reply..." : "Add a comment..."}
               className="w-full bg-transparent px-4 py-3 text-sm font-medium outline-none resize-none min-h-[100px]"
             />
@@ -150,12 +159,18 @@ const CommentItem = ({ comment, replies, currentUser, onReply, onDelete }) => {
   return (
     <div className="animate-fade-in-up">
       <div className="flex gap-4 group">
-        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm">
-          {comment.user.name.charAt(0).toUpperCase()}
-        </div>
+        <Link to={`/profile/${comment.user._id}`} className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm overflow-hidden hover:scale-105 transition-transform">
+          {comment.user.profileImage ? (
+            <img src={comment.user.profileImage} alt={comment.user.name} className="w-full h-full object-cover" />
+          ) : (
+            comment.user.name.charAt(0).toUpperCase()
+          )}
+        </Link>
         <div className="flex-1">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-sm font-bold text-[var(--color-text-primary)]">{comment.user.name}</span>
+            <Link to={`/profile/${comment.user._id}`} className="text-sm font-bold text-[var(--color-text-primary)] hover:text-indigo-600 transition-colors">
+              {comment.user.name}
+            </Link>
             <span className="text-[11px] font-medium text-[var(--color-text-tertiary)]">
               {new Date(comment.createdAt).toLocaleDateString()}
             </span>
@@ -183,12 +198,18 @@ const CommentItem = ({ comment, replies, currentUser, onReply, onDelete }) => {
             <div className="mt-4 pl-4 border-l-2 border-indigo-50 space-y-4">
               {replies.map(reply => (
                 <div key={reply._id} className="flex gap-3 group/reply">
-                  <div className="h-8 w-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-[10px] shrink-0">
-                    {reply.user.name.charAt(0).toUpperCase()}
-                  </div>
+                  <Link to={`/profile/${reply.user._id}`} className="h-8 w-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-[10px] shrink-0 overflow-hidden hover:scale-105 transition-transform">
+                    {reply.user.profileImage ? (
+                      <img src={reply.user.profileImage} alt={reply.user.name} className="w-full h-full object-cover" />
+                    ) : (
+                      reply.user.name.charAt(0).toUpperCase()
+                    )}
+                  </Link>
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-0.5">
-                      <span className="text-xs font-bold text-[var(--color-text-primary)]">{reply.user.name}</span>
+                      <Link to={`/profile/${reply.user._id}`} className="text-xs font-bold text-[var(--color-text-primary)] hover:text-indigo-600 transition-colors">
+                        {reply.user.name}
+                      </Link>
                       <span className="text-[10px] font-medium text-[var(--color-text-tertiary)]">
                         {new Date(reply.createdAt).toLocaleDateString()}
                       </span>

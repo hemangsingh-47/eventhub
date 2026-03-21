@@ -20,11 +20,31 @@ const getOverviewStats = async (req, res) => {
       }
     ]);
 
+    // Calculate total revenue from tickets
+    const Ticket = require('../models/Ticket');
+    const revenueStats = await Ticket.aggregate([
+      { $match: { status: { $in: ['paid', 'checked-in'] } } },
+      {
+        $lookup: {
+          from: 'events',
+          localField: 'event',
+          foreignField: '_id',
+          as: 'eventData'
+        }
+      },
+      { $unwind: '$eventData' },
+      { $match: { 'eventData.organizerId': new mongoose.Types.ObjectId(organizerId) } },
+      { $group: { _id: null, totalRevenue: { $sum: '$eventData.price' } } }
+    ]);
+    
+    const totalRevenue = revenueStats.length > 0 ? revenueStats[0].totalRevenue : 0;
+
     if (stats.length === 0) {
       return res.json({
         totalEvents: 0,
         totalRSVPs: 0,
-        totalCapacity: 0
+        totalCapacity: 0,
+        totalRevenue: 0
       });
     }
 
@@ -34,7 +54,8 @@ const getOverviewStats = async (req, res) => {
     res.json({
       totalEvents: result.totalEvents,
       totalRSVPs,
-      totalCapacity: result.totalCapacity
+      totalCapacity: result.totalCapacity,
+      totalRevenue
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

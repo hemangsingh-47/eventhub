@@ -53,8 +53,11 @@ const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check for predefined admin credentials
-    if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
+    // Check for predefined admin credentials (use fallbacks if .env is missing)
+    const adminEmailConfig = process.env.ADMIN_EMAIL || 'admin@eventhub.com';
+    const adminPasswordConfig = process.env.ADMIN_PASSWORD || 'admin123';
+
+    if (email === adminEmailConfig && password === adminPasswordConfig) {
       let admin = await User.findOne({ email });
       
       if (!admin) {

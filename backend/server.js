@@ -18,6 +18,7 @@ const bookmarkRoutes = require('./routes/bookmarkRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
 const leaderboardRoutes = require('./routes/leaderboardRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const aiRoutes = require('./routes/aiRoutes');
 require('./jobs/reminderCron'); // Start cron jobs
 const { setupSocketHandlers } = require('./socket/handlers');
 
@@ -35,6 +36,9 @@ const io = new Server(server, {
   }
 });
 
+const ticketRoutes = require('./routes/ticketRoutes');
+
+// ...
 // Attach io to every request so controllers can emit events
 app.use((req, res, next) => {
   req.io = io;
@@ -48,6 +52,10 @@ app.use(cors({
   origin: process.env.FRONTEND_URL || '*',
   credentials: true
 }));
+
+// Mount ticket routes BEFORE express.json() to allow raw body for Stripe webhook
+app.use('/api/tickets', ticketRoutes);
+
 app.use(express.json());
 
 // Rate limiter for auth routes (max 20 req / 15 min per IP)
@@ -69,6 +77,7 @@ app.use('/api/bookmarks', bookmarkRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Initialize Socket.io room handlers
 setupSocketHandlers(io);
@@ -83,7 +92,7 @@ if (process.env.NODE_ENV === 'production') {
   const frontendPath = path.join(__dirname, '../frontend/dist');
   app.use(express.static(frontendPath));
 
-  app.get(/(.*)/, (req, res) => {
+  app.get('*', (req, res) => {
     res.sendFile(path.resolve(frontendPath, 'index.html'));
   });
 } else {

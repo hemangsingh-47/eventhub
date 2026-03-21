@@ -21,7 +21,7 @@ const addComment = async (req, res) => {
     const savedComment = await comment.save();
     
     // Populate user info before returning
-    const populated = await savedComment.populate('user', 'name');
+    const populated = await savedComment.populate('user', 'name profileImage');
 
     // Broadcast live comment update via Socket.io
     if (req.io) {
@@ -40,7 +40,7 @@ const addComment = async (req, res) => {
 const getEventComments = async (req, res) => {
   try {
     const comments = await Comment.find({ event: req.params.eventId })
-      .populate('user', 'name')
+      .populate('user', 'name profileImage')
       .sort({ createdAt: -1 });
 
     res.json(comments);

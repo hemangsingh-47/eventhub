@@ -6,6 +6,7 @@ import api from '../utils/api';
 import StatsCards from '../components/dashboard/StatsCards';
 import RSVPChart from '../components/dashboard/RSVPChart';
 import SeatUtilization from '../components/dashboard/SeatUtilization';
+import TicketScanner from '../components/dashboard/TicketScanner';
 
 import { FileDown, Download, Mail } from 'lucide-react';
 
@@ -111,12 +112,16 @@ const DashboardPage = () => {
                   <RSVPChart data={rsvpTrend} />
                 </div>
                 
-                <div className="lg:col-span-1 bg-white rounded-2xl border border-[var(--color-border)] shadow-sm p-6">
-                  <div className="mb-6">
-                    <h3 className="text-base font-bold text-[var(--color-text-primary)]">Overall Seat Utilization</h3>
-                    <p className="text-xs text-[var(--color-text-tertiary)] mt-0.5">Booked vs Available Capacity</p>
+                <div className="lg:col-span-1 flex flex-col gap-6">
+                  <div className="bg-white rounded-2xl border border-[var(--color-border)] shadow-sm p-6">
+                    <div className="mb-6">
+                      <h3 className="text-base font-bold text-[var(--color-text-primary)]">Overall Seat Utilization</h3>
+                      <p className="text-xs text-[var(--color-text-tertiary)] mt-0.5">Booked vs Available Capacity</p>
+                    </div>
+                    <SeatUtilization data={seatUtil} />
                   </div>
-                  <SeatUtilization data={seatUtil} />
+                  
+                  <TicketScanner />
                 </div>
               </div>
             )}
